@@ -1,9 +1,11 @@
 package gravity_changer;
 
 import com.mojang.logging.LogUtils;
-import dev.onyxstudios.cca.api.v3.component.Component;
-import dev.onyxstudios.cca.api.v3.component.sync.AutoSyncedComponent;
-import dev.onyxstudios.cca.api.v3.component.tick.CommonTickingComponent;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import org.ladysnake.cca.api.v3.component.Component;
+import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
+import org.ladysnake.cca.api.v3.component.tick.CommonTickingComponent;
 import gravity_changer.api.GravityChangerAPI;
 import gravity_changer.api.RotationParameters;
 import gravity_changer.mixin.EntityAccessor;
@@ -43,7 +45,7 @@ import org.slf4j.Logger;
  * Other client entities' are synced from server.)
  */
 public class GravityComponent implements Component, AutoSyncedComponent, CommonTickingComponent {
-    
+
     public static interface GravityUpdateCallback {
         void update(Entity entity, GravityComponent component);
     }
@@ -121,7 +123,7 @@ public class GravityComponent implements Component, AutoSyncedComponent, CommonT
     }
     
     @Override
-    public void readFromNbt(CompoundTag tag) {
+    public void readFromNbt(CompoundTag tag, HolderLookup.Provider registryLookup) {
         if (tag.contains("baseGravityDirection")) {
             baseGravityDirection = Direction.byName(tag.getString("baseGravityDirection"));
         }
@@ -169,7 +171,7 @@ public class GravityComponent implements Component, AutoSyncedComponent, CommonT
     }
     
     @Override
-    public void writeToNbt(@NotNull CompoundTag tag) {
+    public void writeToNbt(@NotNull CompoundTag tag, HolderLookup.Provider registryLookup) {
         tag.putString("baseGravityDirection", baseGravityDirection.getName());
         tag.putString("currentGravityDirection", currGravityDirection.getName());
         
@@ -299,7 +301,7 @@ public class GravityComponent implements Component, AutoSyncedComponent, CommonT
     }
     
     @Override
-    public void applySyncPacket(FriendlyByteBuf buf) {
+    public void applySyncPacket(RegistryFriendlyByteBuf buf) {
         AutoSyncedComponent.super.applySyncPacket(buf);
         
         if (entity.level().isClientSide()) {
@@ -408,7 +410,7 @@ public class GravityComponent implements Component, AutoSyncedComponent, CommonT
         EntityDimensions dimensions = entity.getDimensions(entity.getPose());
         if (newGravity.getOpposite() == oldGravity) {
             // In the center of the hit-box
-            return new Vec3(0, dimensions.height / 2, 0);
+            return new Vec3(0, dimensions.height() / 2, 0);
         }
         else {
             return Vec3.ZERO;

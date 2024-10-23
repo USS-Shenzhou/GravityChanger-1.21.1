@@ -1,15 +1,20 @@
 package gravity_changer.plating;
 
 import com.mojang.logging.LogUtils;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.DynamicOps;
+import com.mojang.serialization.codecs.PrimitiveCodec;
 import gravity_changer.EntityTags;
 import gravity_changer.GravityChangerMod;
 import gravity_changer.GravityComponent;
 import gravity_changer.api.GravityChangerAPI;
 import gravity_changer.util.GCUtil;
 import gravity_changer.util.RotationUtil;
+import io.netty.buffer.ByteBuf;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -24,6 +29,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -38,6 +44,7 @@ import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,7 +54,7 @@ import java.util.List;
 public class GravityPlatingBlockEntity extends BlockEntity {
     private static final Logger LOGGER = LogUtils.getLogger();
     
-    public static final ResourceLocation ID = new ResourceLocation("gravity_changer:plating_block_entity");
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath("gravity_changer", "plating_block_entity");
     public static BlockEntityType<GravityPlatingBlockEntity> TYPE;
     
     private static final int MAX_LEVEL = 64;
@@ -156,8 +163,8 @@ public class GravityPlatingBlockEntity extends BlockEntity {
     private @Nullable AABB roughAreaBoxCache = null;
     
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        super.loadAdditional(tag, provider);
         
         sideData = new SideData[6];
         for (Direction dir : Direction.values()) {
@@ -170,8 +177,8 @@ public class GravityPlatingBlockEntity extends BlockEntity {
     }
     
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        super.saveAdditional(tag, provider);
         
         if (sideData != null) {
             for (Direction dir : Direction.values()) {
@@ -191,9 +198,9 @@ public class GravityPlatingBlockEntity extends BlockEntity {
     }
     
     @Override
-    public CompoundTag getUpdateTag() {
+    public CompoundTag getUpdateTag(HolderLookup.Provider provider) {
         CompoundTag tag = new CompoundTag();
-        saveAdditional(tag);
+        saveAdditional(tag, provider);
         return tag;
     }
     
@@ -381,6 +388,17 @@ public class GravityPlatingBlockEntity extends BlockEntity {
             }
         }
         
+    }
+
+    public ItemInteractionResult interactItem(Level level, BlockPos pos, Direction plateDir, Player player, InteractionHand hand) {
+        return switch (interact(level, pos, plateDir, player, hand))
+        {
+            case SUCCESS, SUCCESS_NO_ITEM_USED -> ItemInteractionResult.SUCCESS;
+            case CONSUME -> ItemInteractionResult.CONSUME;
+            case CONSUME_PARTIAL -> ItemInteractionResult.CONSUME_PARTIAL;
+            case PASS -> ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            case FAIL -> ItemInteractionResult.FAIL;
+        };
     }
     
     public InteractionResult interact(Level level, BlockPos pos, Direction plateDir, Player player, InteractionHand hand) {

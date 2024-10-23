@@ -1,6 +1,6 @@
 package gravity_changer.plating;
 
-import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
+import gravity_changer.GravityDataComponents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
@@ -22,11 +22,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class GravityPlatingItem extends BlockItem {
-    public static final Item PLATING_BLOCK_ITEM = new GravityPlatingItem(GravityPlatingBlock.PLATING_BLOCK, new FabricItemSettings());
+    public static final Item PLATING_BLOCK_ITEM = new GravityPlatingItem(GravityPlatingBlock.PLATING_BLOCK, new Item.Properties());
     
     public static void init() {
         Registry.register(
-            BuiltInRegistries.ITEM, new ResourceLocation("gravity_changer:plating"),
+            BuiltInRegistries.ITEM, ResourceLocation.fromNamespaceAndPath("gravity_changer", "plating"),
             GravityPlatingItem.PLATING_BLOCK_ITEM
         );
     }
@@ -47,24 +47,24 @@ public class GravityPlatingItem extends BlockItem {
         return null;
     }
     
-    public static void setSideData(CompoundTag tag, @Nullable GravityPlatingBlockEntity.SideData sideData) {
+    public static void setSideData(ItemStack stack, @Nullable GravityPlatingBlockEntity.SideData sideData) {
         if (sideData != null) {
-            tag.put("sideData", sideData.toTag());
+            stack.set(GravityDataComponents.SIDE_DATA_COMPONENT, sideData.toTag());
         }
         else {
-            tag.remove("sideData");
+            stack.remove(GravityDataComponents.SIDE_DATA_COMPONENT);
         }
     }
     
     public static ItemStack createStack(@Nullable GravityPlatingBlockEntity.SideData sideData) {
         ItemStack itemStack = new ItemStack(GravityPlatingItem.PLATING_BLOCK_ITEM);
-        setSideData(itemStack.getOrCreateTag(), sideData);
+        setSideData(itemStack, sideData);
         return itemStack;
     }
     
     @Override
     public Component getName(ItemStack stack) {
-        GravityPlatingBlockEntity.SideData sideData = getSideData(stack.getTag());
+        GravityPlatingBlockEntity.SideData sideData = getSideData(stack.getOrDefault(GravityDataComponents.SIDE_DATA_COMPONENT, null));
         if (sideData != null) {
             return Component.translatable(
                 "gravity_changer.plating.item_name",
@@ -87,7 +87,7 @@ public class GravityPlatingItem extends BlockItem {
             return result;
         }
         
-        GravityPlatingBlockEntity.SideData sideData = getSideData(itemStack.getOrCreateTag());
+        GravityPlatingBlockEntity.SideData sideData = getSideData(itemStack.getOrDefault(GravityDataComponents.SIDE_DATA_COMPONENT, null));
         
         if (sideData != null) {
             BlockEntity blockEntity = level.getBlockEntity(clickedPos);
@@ -100,7 +100,7 @@ public class GravityPlatingItem extends BlockItem {
     }
     
     @Override
-    public void appendHoverText(ItemStack itemStack, Level world, List<Component> tooltip, TooltipFlag tooltipContext) {
+    public void appendHoverText(ItemStack itemStack, Item.TooltipContext tooltipContext, List<Component> tooltip, TooltipFlag tooltipFlag) {
         tooltip.add(Component.translatable("gravity_changer.plating.tooltip.0").withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.translatable("gravity_changer.plating.tooltip.1").withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.translatable("gravity_changer.plating.tooltip.2").withStyle(ChatFormatting.GRAY));

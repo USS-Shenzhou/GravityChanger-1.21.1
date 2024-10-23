@@ -1,6 +1,7 @@
 package gravity_changer.mob_effect;
 
 import gravity_changer.GravityComponent;
+import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -12,9 +13,9 @@ public class GravityInvertMobEffect extends MobEffect {
     
     public static final int COLOR = 0x98D982;
     
-    public static final ResourceLocation PHASE = new ResourceLocation("gravity_changer:invert_mob_effect_phase");
+    public static final ResourceLocation PHASE = ResourceLocation.fromNamespaceAndPath("gravity_changer", "invert_mob_effect_phase");
     
-    public static final ResourceLocation ID = new ResourceLocation("gravity_changer:invert");
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath("gravity_changer", "invert");
     
     public static final GravityInvertMobEffect INSTANCE = new GravityInvertMobEffect();
     
@@ -26,7 +27,7 @@ public class GravityInvertMobEffect extends MobEffect {
         GravityComponent.GRAVITY_UPDATE_EVENT.register(
             PHASE, (entity, component) -> {
                 if (entity instanceof LivingEntity livingEntity) {
-                    if (livingEntity.hasEffect(INSTANCE)) {
+                    if (livingEntity.hasEffect(Holder.direct(INSTANCE))) {
                         component.applyGravityDirectionEffect(
                             component.getCurrGravityDirection().getOpposite(),
                             null, 5

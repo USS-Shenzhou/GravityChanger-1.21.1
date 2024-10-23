@@ -22,6 +22,7 @@ import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
+import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -32,7 +33,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potion;
-import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.PotionContents;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -44,12 +45,13 @@ public class GravityChangerMod implements ModInitializer {
     
     public static ConfigHolder<GravityChangerConfig> configHolder;
     public static GravityChangerConfig config;
-    
+
     @Override
     public void onInitialize() {
         GravityChangerItem.init();
         GravityChangerItemAOE.init();
         GravityAnchorItem.init();
+        GravityDataComponents.init();
         
         AutoConfig.register(GravityChangerConfig.class, GsonConfigSerializer::new);
         configHolder = AutoConfig.getConfigHolder(GravityChangerConfig.class);
@@ -114,7 +116,7 @@ public class GravityChangerMod implements ModInitializer {
                 
                 for (Item potionItem : potionItems) {
                     for (Potion potion : GravityPotion.ALL) {
-                        ItemStack stack = PotionUtils.setPotion(new ItemStack(potionItem), potion);
+                        ItemStack stack = PotionContents.createItemStack(potionItem, new Holder.Direct<>(potion));
                         entries.accept(stack);
                     }
                 }
@@ -141,6 +143,6 @@ public class GravityChangerMod implements ModInitializer {
     }
     
     public static ResourceLocation id(String path) {
-        return new ResourceLocation(NAMESPACE, path);
+        return ResourceLocation.fromNamespaceAndPath(NAMESPACE, path);
     }
 }

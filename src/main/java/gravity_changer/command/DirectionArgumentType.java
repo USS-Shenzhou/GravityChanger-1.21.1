@@ -64,7 +64,7 @@ public class DirectionArgumentType implements ArgumentType<Direction> {
     
     public static void init() {
         ArgumentTypeRegistry.registerArgumentType(
-            new ResourceLocation("gravity_changer:direction"),
+            ResourceLocation.fromNamespaceAndPath("gravity_changer", "direction"),
             DirectionArgumentType.class,
             SingletonArgumentInfo.contextFree(() -> DirectionArgumentType.instance)
         );

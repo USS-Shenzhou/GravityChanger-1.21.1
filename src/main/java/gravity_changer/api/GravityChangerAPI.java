@@ -1,7 +1,7 @@
 package gravity_changer.api;
 
-import dev.onyxstudios.cca.api.v3.component.ComponentKey;
-import dev.onyxstudios.cca.api.v3.component.ComponentProvider;
+import org.ladysnake.cca.api.v3.component.ComponentKey;
+import org.ladysnake.cca.api.v3.component.ComponentProvider;
 import gravity_changer.DimensionGravityDataComponent;
 import gravity_changer.EntityTags;
 import gravity_changer.GravityChangerComponents;
@@ -111,7 +111,7 @@ public abstract class GravityChangerAPI {
     /**
      * cardinal components initializes the component container in the end of constructor
      * but bounding box calculation can happen inside constructor
-     * see {@link dev.onyxstudios.cca.mixin.entity.common.MixinEntity}
+     * see {@link org.ladysnake.cca.mixin.entity.common.MixinEntity}
      */
     @SuppressWarnings({"ConstantValue", "UnstableApiUsage", "DataFlowIssue"})
     public static @Nullable GravityComponent getGravityComponentEarly(Entity entity) {

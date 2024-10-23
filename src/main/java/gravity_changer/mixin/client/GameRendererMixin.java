@@ -1,20 +1,23 @@
 package gravity_changer.mixin.client;
 
-import com.mojang.blaze3d.vertex.PoseStack;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
 import gravity_changer.RotationAnimation;
 import gravity_changer.api.GravityChangerAPI;
 import net.minecraft.client.Camera;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
+import org.joml.Matrix4f;
 import org.joml.Quaternionf;
+import org.joml.Quaternionfc;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(GameRenderer.class)
 public abstract class GameRendererMixin {
@@ -22,32 +25,33 @@ public abstract class GameRendererMixin {
     @Final
     private Camera mainCamera;
     
-    @Inject(
-        method = "Lnet/minecraft/client/renderer/GameRenderer;renderLevel(FJLcom/mojang/blaze3d/vertex/PoseStack;)V",
+    /*@WrapOperation(
+        method = "renderLevel",
         at = @At(
             value = "INVOKE",
-            target = "Lcom/mojang/blaze3d/vertex/PoseStack;mulPose(Lorg/joml/Quaternionf;)V",
-            ordinal = 3,
-            shift = At.Shift.AFTER
-        )
+            target = "Lorg/joml/Matrix4f;rotation(Lorg/joml/Quaternionfc;)Lorg/joml/Matrix4f;"
+        ),
+        remap = false
     )
-    private void inject_renderWorld(float tickDelta, long limitTime, PoseStack matrix, CallbackInfo ci) {
+    private Matrix4f inject_renderWorld(Matrix4f matrix, Quaternionfc quat, Operation<Matrix4f> original, @Local(argsOnly = true) DeltaTracker deltaTracker) {
+        matrix = original.call(matrix, quat);
         if (this.mainCamera.getEntity() != null) {
             Entity focusedEntity = this.mainCamera.getEntity();
             Direction gravityDirection = GravityChangerAPI.getGravityDirection(focusedEntity);
             RotationAnimation animation = GravityChangerAPI.getRotationAnimation(focusedEntity);
             if (animation == null) {
-                return;
+                return matrix;
             }
-            long timeMs = focusedEntity.level().getGameTime() * 50 + (long) (tickDelta * 50);
+            long timeMs = focusedEntity.level().getGameTime() * 50 + (long) (deltaTracker.getGameTimeDeltaTicks() * 50);
             Quaternionf currentGravityRotation = animation.getCurrentGravityRotation(gravityDirection, timeMs);
     
             if (animation.isInAnimation()) {
                 // make sure that frustum culling updates when running rotation animation
                 Minecraft.getInstance().levelRenderer.needsUpdate();
             }
-            
-            matrix.mulPose(currentGravityRotation);
+
+            matrix = matrix.rotation(currentGravityRotation);
         }
-    }
+        return matrix;
+    }*/
 }

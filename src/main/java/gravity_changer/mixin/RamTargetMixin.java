@@ -19,7 +19,7 @@ public abstract class RamTargetMixin {
     private Vec3 ramDirection;
     
     @WrapOperation(
-        method = "tick",
+        method = "tick(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/entity/animal/goat/Goat;J)V",
         at = @At(
             value = "INVOKE",
             target = "Lnet/minecraft/world/entity/LivingEntity;knockback(DDD)V",

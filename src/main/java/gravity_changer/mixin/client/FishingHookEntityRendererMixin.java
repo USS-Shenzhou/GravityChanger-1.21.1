@@ -34,23 +34,23 @@ public abstract class FishingHookEntityRendererMixin extends EntityRenderer<Fish
     @Shadow
     @Final
     private static RenderType RENDER_TYPE;
-    
+
     @Shadow
-    private static void vertex(VertexConsumer buffer, Matrix4f matrix, Matrix3f normalMatrix, int light, float x, int y, int u, int v) {}
-    
+    private static void vertex(VertexConsumer vertexConsumer, PoseStack.Pose pose, int light, float x, int y, int u, int v) {}
+
     @Shadow
     private static void stringVertex(float x, float y, float z, VertexConsumer buffer, PoseStack.Pose normal, float f, float g) {}
     
     @Shadow
     private static float fraction(int value, int max) {return 0.0F;}
-    
+
     protected FishingHookEntityRendererMixin(EntityRendererProvider.Context ctx) {
         super(ctx);
     }
     
     // TODO mixin fishing hook rendering in a better way
     @Inject(
-        method = "Lnet/minecraft/client/renderer/entity/FishingHookRenderer;render(Lnet/minecraft/world/entity/projectile/FishingHook;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
+        method = "render(Lnet/minecraft/world/entity/projectile/FishingHook;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
         at = @At("HEAD"),
         cancellable = true
     )
@@ -72,10 +72,10 @@ public abstract class FishingHookEntityRendererMixin extends EntityRenderer<Fish
         Matrix4f matrix4f = entry.pose();
         Matrix3f matrix3f = entry.normal();
         VertexConsumer vertexConsumer = vertexConsumerProvider.getBuffer(RENDER_TYPE);
-        vertex(vertexConsumer, matrix4f, matrix3f, light, 0.0F, 0, 0, 1);
-        vertex(vertexConsumer, matrix4f, matrix3f, light, 1.0F, 0, 1, 1);
-        vertex(vertexConsumer, matrix4f, matrix3f, light, 1.0F, 1, 1, 0);
-        vertex(vertexConsumer, matrix4f, matrix3f, light, 0.0F, 1, 0, 0);
+        vertex(vertexConsumer, entry.copy(), light, 0.0F, 0, 0, 1);
+        vertex(vertexConsumer, entry.copy(), light, 1.0F, 0, 1, 1);
+        vertex(vertexConsumer, entry.copy(), light, 1.0F, 1, 1, 0);
+        vertex(vertexConsumer, entry.copy(), light, 0.0F, 1, 0, 0);
         matrixStack.popPose();
         int armOffset = playerEntity.getMainArm() == HumanoidArm.RIGHT ? 1 : -1;
         ItemStack itemStack = playerEntity.getMainHandItem();

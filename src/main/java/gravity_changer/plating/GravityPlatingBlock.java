@@ -10,6 +10,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -76,7 +77,7 @@ public class GravityPlatingBlock extends BaseEntityBlock {
     
     public static void init() {
         Registry.register(
-            BuiltInRegistries.BLOCK, new ResourceLocation("gravity_changer:plating"), PLATING_BLOCK
+            BuiltInRegistries.BLOCK, ResourceLocation.fromNamespaceAndPath("gravity_changer", "plating"), PLATING_BLOCK
         );
     }
     
@@ -266,28 +267,43 @@ public class GravityPlatingBlock extends BaseEntityBlock {
         }
         return list;
     }
-    
+
     @Override
-    public InteractionResult use(
-        BlockState state, Level level, BlockPos pos, Player player,
-        InteractionHand hand, BlockHitResult hit
-    ) {
+    protected InteractionResult useWithoutItem(BlockState blockState, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
-        
+
         Direction hitDir = hit.getDirection();
         Direction plateDir = hitDir.getOpposite();
-        
+
         BlockEntity blockEntity = level.getBlockEntity(pos);
-        
+
         if (!(blockEntity instanceof GravityPlatingBlockEntity be)) {
             return InteractionResult.FAIL;
         }
-        
-        return be.interact(level, pos, plateDir, player, hand);
+
+        return be.interact(level, pos, plateDir, player, InteractionHand.MAIN_HAND);
     }
-    
+
+    @Override
+    protected ItemInteractionResult useItemOn(ItemStack itemStack, BlockState blockState, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        if (level.isClientSide()) {
+            return ItemInteractionResult.SUCCESS;
+        }
+
+        Direction hitDir = hit.getDirection();
+        Direction plateDir = hitDir.getOpposite();
+
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+
+        if (!(blockEntity instanceof GravityPlatingBlockEntity be)) {
+            return ItemInteractionResult.FAIL;
+        }
+
+        return be.interactItem(level, pos, plateDir, player, hand);
+    }
+
     /**
      * Similar to {@link ShulkerBoxBlock#playerWillDestroy(Level, BlockPos, BlockState, Player)}
      * Make it drop in creative mode.

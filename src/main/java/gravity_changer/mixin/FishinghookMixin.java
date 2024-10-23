@@ -57,7 +57,7 @@ public abstract class FishinghookMixin extends Entity {
 //        return RotationUtil.vecPlayerToWorld(vec3d, gravityDirection);
 //    }
     
-    @ModifyConstant(method = "Lnet/minecraft/world/entity/projectile/FishingHook;tick()V", constant = @Constant(doubleValue = -0.03))
+    @ModifyConstant(method = "tick()V", constant = @Constant(doubleValue = -0.03))
     private double multiplyGravity(double constant) {
         return constant * GravityChangerAPI.getGravityStrength(this);
     }

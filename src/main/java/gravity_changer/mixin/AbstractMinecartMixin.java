@@ -14,16 +14,5 @@ public abstract class AbstractMinecartMixin extends Entity {
     public AbstractMinecartMixin(EntityType<?> type, Level world) {
         super(type, world);
     }
-    
-    @ModifyArg(
-        method = "tick",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/world/phys/Vec3;add(DDD)Lnet/minecraft/world/phys/Vec3;"
-        ),
-        index = 1
-    )
-    private double multiplyGravity(double x) {
-        return x * GravityChangerAPI.getGravityStrength(this);
-    }
+
 }

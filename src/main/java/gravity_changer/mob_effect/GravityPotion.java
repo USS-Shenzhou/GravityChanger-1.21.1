@@ -1,6 +1,7 @@
 package gravity_changer.mob_effect;
 
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -12,37 +13,37 @@ import java.util.EnumMap;
 public class GravityPotion {
     public static Potion STRENGTH_DECR_POTION_0 = new Potion(
         new MobEffectInstance(
-            GravityStrengthMobEffect.DECREASE, 9600, 0
+                Holder.direct(GravityStrengthMobEffect.DECREASE), 9600, 0
         )
     );
     
     public static Potion STRENGTH_DECR_POTION_1 = new Potion(
         new MobEffectInstance(
-            GravityStrengthMobEffect.DECREASE, 9600, 1
+            Holder.direct(GravityStrengthMobEffect.DECREASE), 9600, 1
         )
     );
     
     public static Potion STRENGTH_INCR_POTION_0 = new Potion(
         new MobEffectInstance(
-            GravityStrengthMobEffect.INCREASE, 9600, 0
+                Holder.direct(GravityStrengthMobEffect.INCREASE), 9600, 0
         )
     );
     
     public static Potion STRENGTH_INCR_POTION_1 = new Potion(
         new MobEffectInstance(
-            GravityStrengthMobEffect.INCREASE, 9600, 1
+                Holder.direct(GravityStrengthMobEffect.INCREASE), 9600, 1
         )
     );
     
     public static Potion STRENGTH_REVERSE_POTION_0 = new Potion(
         new MobEffectInstance(
-            GravityStrengthMobEffect.REVERSE, 9600, 0
+                Holder.direct(GravityStrengthMobEffect.REVERSE), 9600, 0
         )
     );
     
     public static Potion STRENGTH_REVERSE_POTION_1 = new Potion(
         new MobEffectInstance(
-            GravityStrengthMobEffect.REVERSE, 9600, 1
+                Holder.direct(GravityStrengthMobEffect.REVERSE), 9600, 1
         )
     );
     
@@ -52,7 +53,7 @@ public class GravityPotion {
         for (Direction direction : Direction.values()) {
             Potion potion = new Potion(
                 new MobEffectInstance(
-                    GravityDirectionMobEffect.EFFECT_MAP.get(direction), 9600, 1
+                        Holder.direct(GravityDirectionMobEffect.EFFECT_MAP.get(direction)), 9600, 1
                 )
             );
             DIR_POTIONS.put(direction, potion);
@@ -61,12 +62,12 @@ public class GravityPotion {
     
     public static ResourceLocation getPotionId(Direction direction) {
         return switch (direction) {
-            case DOWN -> new ResourceLocation("gravity_changer:gravity_down_0");
-            case UP -> new ResourceLocation("gravity_changer:gravity_up_0");
-            case NORTH -> new ResourceLocation("gravity_changer:gravity_north_0");
-            case SOUTH -> new ResourceLocation("gravity_changer:gravity_south_0");
-            case WEST -> new ResourceLocation("gravity_changer:gravity_west_0");
-            case EAST -> new ResourceLocation("gravity_changer:gravity_east_0");
+            case DOWN -> ResourceLocation.fromNamespaceAndPath("gravity_changer", "gravity_down_0");
+            case UP -> ResourceLocation.fromNamespaceAndPath("gravity_changer", "gravity_up_0");
+            case NORTH -> ResourceLocation.fromNamespaceAndPath("gravity_changer", "gravity_north_0");
+            case SOUTH -> ResourceLocation.fromNamespaceAndPath("gravity_changer", "gravity_south_0");
+            case WEST -> ResourceLocation.fromNamespaceAndPath("gravity_changer", "gravity_west_0");
+            case EAST -> ResourceLocation.fromNamespaceAndPath("gravity_changer", "gravity_east_0");
         };
     }
     
@@ -88,37 +89,37 @@ public class GravityPotion {
     public static void init() {
         Registry.register(
             BuiltInRegistries.POTION,
-            new ResourceLocation("gravity_changer:gravity_decr_0"),
+                ResourceLocation.fromNamespaceAndPath("gravity_changer", "gravity_decr_0"),
             STRENGTH_DECR_POTION_0
         );
         
         Registry.register(
             BuiltInRegistries.POTION,
-            new ResourceLocation("gravity_changer:gravity_decr_1"),
+                ResourceLocation.fromNamespaceAndPath("gravity_changer", "gravity_decr_1"),
             STRENGTH_DECR_POTION_1
         );
         
         Registry.register(
             BuiltInRegistries.POTION,
-            new ResourceLocation("gravity_changer:gravity_incr_0"),
+                ResourceLocation.fromNamespaceAndPath("gravity_changer", "gravity_incr_0"),
             STRENGTH_INCR_POTION_0
         );
         
         Registry.register(
             BuiltInRegistries.POTION,
-            new ResourceLocation("gravity_changer:gravity_incr_1"),
+                ResourceLocation.fromNamespaceAndPath("gravity_changer", "gravity_incr_1"),
             STRENGTH_INCR_POTION_1
         );
         
         Registry.register(
             BuiltInRegistries.POTION,
-            new ResourceLocation("gravity_changer:gravity_reverse_0"),
+                ResourceLocation.fromNamespaceAndPath("gravity_changer", "gravity_reverse_0"),
             STRENGTH_REVERSE_POTION_0
         );
         
         Registry.register(
             BuiltInRegistries.POTION,
-            new ResourceLocation("gravity_changer:gravity_reverse_1"),
+                ResourceLocation.fromNamespaceAndPath("gravity_changer", "gravity_reverse_1"),
             STRENGTH_REVERSE_POTION_1
         );
         

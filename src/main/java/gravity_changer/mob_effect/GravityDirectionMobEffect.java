@@ -2,6 +2,7 @@ package gravity_changer.mob_effect;
 
 import gravity_changer.GravityComponent;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -15,7 +16,7 @@ import java.util.EnumMap;
 public class GravityDirectionMobEffect extends MobEffect {
     public static final int COLOR = 0x98D982;
     
-    public static final ResourceLocation PHASE = new ResourceLocation("gravity_changer:dir_mob_effect_phase");
+    public static final ResourceLocation PHASE = ResourceLocation.fromNamespaceAndPath("gravity_changer", "dir_mob_effect_phase");
     
     public final Direction gravityDirection;
     
@@ -36,12 +37,12 @@ public class GravityDirectionMobEffect extends MobEffect {
     
     public static ResourceLocation getEffectId(Direction direction) {
         return switch (direction) {
-            case DOWN -> new ResourceLocation("gravity_changer:down");
-            case UP -> new ResourceLocation("gravity_changer:up");
-            case NORTH -> new ResourceLocation("gravity_changer:north");
-            case SOUTH -> new ResourceLocation("gravity_changer:south");
-            case WEST -> new ResourceLocation("gravity_changer:west");
-            case EAST -> new ResourceLocation("gravity_changer:east");
+            case DOWN -> ResourceLocation.fromNamespaceAndPath("gravity_changer", "down");
+            case UP -> ResourceLocation.fromNamespaceAndPath("gravity_changer", "up");
+            case NORTH -> ResourceLocation.fromNamespaceAndPath("gravity_changer", "north");
+            case SOUTH -> ResourceLocation.fromNamespaceAndPath("gravity_changer", "south");
+            case WEST -> ResourceLocation.fromNamespaceAndPath("gravity_changer", "west");
+            case EAST -> ResourceLocation.fromNamespaceAndPath("gravity_changer", "east");
         };
     }
     
@@ -59,7 +60,7 @@ public class GravityDirectionMobEffect extends MobEffect {
                 }
                 
                 for (GravityDirectionMobEffect dirEffect : GravityDirectionMobEffect.EFFECT_MAP.values()) {
-                    MobEffectInstance effectInstance = livingEntity.getEffect(dirEffect);
+                    MobEffectInstance effectInstance = livingEntity.getEffect(Holder.direct(dirEffect));
                     if (effectInstance != null) {
                         int amplifier = effectInstance.getAmplifier();
                         

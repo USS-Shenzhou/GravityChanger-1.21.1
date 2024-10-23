@@ -1,5 +1,8 @@
 package gravity_changer.mixin.client;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import gravity_changer.EntityTags;
@@ -25,9 +28,9 @@ import org.joml.Quaternionf;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
@@ -40,11 +43,14 @@ public abstract class EntityRenderDispatcherMixin {
     @Shadow
     private boolean shouldRenderShadow;
     
+    //@Shadow
+    //private static void shadowVertex(PoseStack.Pose entry, VertexConsumer vertices, float alpha, float x, float y, float z, float u, float v) {}
+
     @Shadow
-    private static void shadowVertex(PoseStack.Pose entry, VertexConsumer vertices, float alpha, float x, float y, float z, float u, float v) {}
-    
+    private static void shadowVertex(PoseStack.Pose pose, VertexConsumer vertexConsumer, int i, float f, float g, float h, float j, float k) {}
+
     @Inject(
-        method = "Lnet/minecraft/client/renderer/entity/EntityRenderDispatcher;render(Lnet/minecraft/world/entity/Entity;DDDFFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
+        method = "render(Lnet/minecraft/world/entity/Entity;DDDFFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
         at = @At(
             value = "INVOKE",
             target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(DDD)V",
@@ -68,7 +74,7 @@ public abstract class EntityRenderDispatcherMixin {
     }
     
     @Inject(
-        method = "Lnet/minecraft/client/renderer/entity/EntityRenderDispatcher;render(Lnet/minecraft/world/entity/Entity;DDDFFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
+        method = "render(Lnet/minecraft/world/entity/Entity;DDDFFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
         at = @At(
             value = "INVOKE",
             target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(DDD)V",
@@ -85,7 +91,7 @@ public abstract class EntityRenderDispatcherMixin {
     }
     
     @Inject(
-        method = "Lnet/minecraft/client/renderer/entity/EntityRenderDispatcher;render(Lnet/minecraft/world/entity/Entity;DDDFFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
+        method = "render(Lnet/minecraft/world/entity/Entity;DDDFFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
         at = @At(
             value = "INVOKE",
             target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(DDD)V",
@@ -104,7 +110,7 @@ public abstract class EntityRenderDispatcherMixin {
     }
     
     @Inject(
-        method = "Lnet/minecraft/client/renderer/entity/EntityRenderDispatcher;renderShadow(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/world/entity/Entity;FFLnet/minecraft/world/level/LevelReader;F)V",
+        method = "renderShadow(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/world/entity/Entity;FFLnet/minecraft/world/level/LevelReader;F)V",
         at = @At("HEAD"),
         cancellable = true
     )
@@ -123,11 +129,12 @@ public abstract class EntityRenderDispatcherMixin {
         VertexConsumer vertexConsumer = vertexConsumers.getBuffer(SHADOW_RENDER_TYPE);
         
         for (BlockPos blockPos : BlockPos.betweenClosed(BlockPos.containing(minShadowPos), BlockPos.containing(maxShadowPos))) {
-            gravitychanger$renderShadowPartPlayer(entry, vertexConsumer, world, blockPos, x, y, z, radius, opacity, gravityDirection);
+            renderShadowPartPlayer(entry, vertexConsumer, world, blockPos, x, y, z, radius, opacity, gravityDirection);
         }
     }
     
-    private static void gravitychanger$renderShadowPartPlayer(PoseStack.Pose entry, VertexConsumer vertices, LevelReader world, BlockPos pos, double x, double y, double z, float radius, float opacity, Direction gravityDirection) {
+    @Unique
+    private static void renderShadowPartPlayer(PoseStack.Pose entry, VertexConsumer vertices, LevelReader world, BlockPos pos, double x, double y, double z, float radius, float opacity, Direction gravityDirection) {
         BlockPos posBelow = pos.relative(gravityDirection);
         BlockState blockStateBelow = world.getBlockState(posBelow);
         if (blockStateBelow.getRenderShape() != RenderShape.INVISIBLE && world.getMaxLocalRawBrightness(pos) > 3) {
@@ -156,27 +163,29 @@ public abstract class EntityRenderDispatcherMixin {
                         float maxU = -(float) playerRelPP.x / 2.0F / radius + 0.5F;
                         float minV = -(float) playerRelNN.z / 2.0F / radius + 0.5F;
                         float maxV = -(float) playerRelPP.z / 2.0F / radius + 0.5F;
-                        
-                        shadowVertex(entry, vertices, alpha, (float) relNN.x, (float) relNN.y, (float) relNN.z, minU, minV);
-                        shadowVertex(entry, vertices, alpha, (float) relNP.x, (float) relNP.y, (float) relNP.z, minU, maxV);
-                        shadowVertex(entry, vertices, alpha, (float) relPP.x, (float) relPP.y, (float) relPP.z, maxU, maxV);
-                        shadowVertex(entry, vertices, alpha, (float) relPN.x, (float) relPN.y, (float) relPN.z, maxU, minV);
+
+                        int light = (int)(alpha*15);
+
+                        shadowVertex(entry, vertices, light, (float) relNN.x, (float) relNN.y, (float) relNN.z, minU, minV);
+                        shadowVertex(entry, vertices, light, (float) relNP.x, (float) relNP.y, (float) relNP.z, minU, maxV);
+                        shadowVertex(entry, vertices, light, (float) relPP.x, (float) relPP.y, (float) relPP.z, maxU, maxV);
+                        shadowVertex(entry, vertices, light, (float) relPN.x, (float) relPN.y, (float) relPN.z, maxU, minV);
                     }
                 }
             }
         }
     }
     
-    @ModifyVariable(
-        method = "Lnet/minecraft/client/renderer/entity/EntityRenderDispatcher;renderHitbox(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;Lnet/minecraft/world/entity/Entity;F)V",
+    @WrapOperation(
+        method = "renderHitbox",
         at = @At(
-            value = "INVOKE_ASSIGN",
+            value = "INVOKE",
             target = "Lnet/minecraft/world/phys/AABB;move(DDD)Lnet/minecraft/world/phys/AABB;",
             ordinal = 0
-        ),
-        ordinal = 0
+        )
     )
-    private static AABB modify_renderHitbox_Box_0(AABB box, PoseStack matrices, VertexConsumer vertices, Entity entity, float tickDelta) {
+    private static AABB modify_renderHitbox_Box_0(AABB originalBox, double x, double y, double z, Operation<AABB> original, @Local(argsOnly = true) Entity entity) {
+        AABB box = original.call(originalBox, x, y, z);
         Direction gravityDirection = GravityChangerAPI.getGravityDirection(entity);
         if (gravityDirection == Direction.DOWN) {
             return box;
@@ -186,7 +195,7 @@ public abstract class EntityRenderDispatcherMixin {
     }
     
     @Redirect(
-        method = "Lnet/minecraft/client/renderer/entity/EntityRenderDispatcher;renderHitbox(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;Lnet/minecraft/world/entity/Entity;F)V",
+        method = "renderHitbox",
         at = @At(
             value = "INVOKE",
             target = "Lnet/minecraft/world/entity/Entity;getViewVector(F)Lnet/minecraft/world/phys/Vec3;",

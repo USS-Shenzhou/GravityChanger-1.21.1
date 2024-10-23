@@ -63,7 +63,7 @@ public class LocalDirectionArgumentType implements ArgumentType<LocalDirection> 
     
     public static void init() {
         ArgumentTypeRegistry.registerArgumentType(
-            new ResourceLocation("gravity_changer:local_direction"),
+            ResourceLocation.fromNamespaceAndPath("gravity_changer", "local_direction"),
             LocalDirectionArgumentType.class,
             SingletonArgumentInfo.contextFree(() -> LocalDirectionArgumentType.instance)
         );

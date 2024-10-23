@@ -22,15 +22,15 @@ import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 public abstract class ThrowableProjectileMixin {
     
     @Shadow
-    protected abstract float getGravity();
+    protected abstract double getDefaultGravity();
 
     /*@Override
     public Direction gravitychanger$getAppliedGravityDirection() {
         return GravityChangerAPI.getGravityDirection((ThrownEntity)(Object)this);
     }*/
-    
+
     @ModifyVariable(
-        method = "Lnet/minecraft/world/entity/projectile/ThrowableProjectile;tick()V",
+        method = "tick()V",
         at = @At(
             value = "STORE"
         )
@@ -38,16 +38,16 @@ public abstract class ThrowableProjectileMixin {
     )
     public Vec3 tick(Vec3 modify) {
         //if(this instanceof RotatableEntityAccessor) {
-        modify = new Vec3(modify.x, modify.y + this.getGravity(), modify.z);
+        modify = new Vec3(modify.x, modify.y + this.getDefaultGravity(), modify.z);
         modify = RotationUtil.vecWorldToPlayer(modify, GravityChangerAPI.getGravityDirection((ThrowableProjectile) (Object) this));
-        modify = new Vec3(modify.x, modify.y - this.getGravity(), modify.z);
+        modify = new Vec3(modify.x, modify.y - this.getDefaultGravity(), modify.z);
         modify = RotationUtil.vecPlayerToWorld(modify, GravityChangerAPI.getGravityDirection((ThrowableProjectile) (Object) this));
         // }
         return modify;
     }
     
     @ModifyArgs(
-        method = "Lnet/minecraft/world/entity/projectile/ThrowableProjectile;<init>(Lnet/minecraft/world/entity/EntityType;Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/level/Level;)V",
+        method = "<init>(Lnet/minecraft/world/entity/EntityType;Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/level/Level;)V",
         at = @At(
             value = "INVOKE",
             target = "Lnet/minecraft/world/entity/projectile/ThrowableProjectile;<init>(Lnet/minecraft/world/entity/EntityType;DDDLnet/minecraft/world/level/Level;)V",
@@ -63,9 +63,5 @@ public abstract class ThrowableProjectileMixin {
         args.set(2, pos.y);
         args.set(3, pos.z);
     }
-    
-    @ModifyReturnValue(method = "getGravity", at = @At("RETURN"))
-    private float multiplyGravity(float original) {
-        return original * (float) GravityChangerAPI.getGravityStrength(((Entity) (Object) this));
-    }
+
 }

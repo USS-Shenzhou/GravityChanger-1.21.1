@@ -7,6 +7,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -35,20 +36,23 @@ public class GravityAnchorItem extends Item {
         }
         
         GravityComponent.GRAVITY_UPDATE_EVENT.register((entity, component) -> {
-            for (ItemStack handSlot : entity.getHandSlots()) {
-                Item item = handSlot.getItem();
-                if (item instanceof GravityAnchorItem anchorItem) {
-                    component.applyGravityDirectionEffect(
-                        anchorItem.direction,
-                        null, 1000000
-                    );
+            if(entity instanceof LivingEntity living)
+            {
+                for (ItemStack handSlot : living.getHandSlots()) {
+                    Item item = handSlot.getItem();
+                    if (item instanceof GravityAnchorItem anchorItem) {
+                        component.applyGravityDirectionEffect(
+                                anchorItem.direction,
+                                null, 1000000
+                        );
+                    }
                 }
             }
         });
     }
     
     public static ResourceLocation getItemId(Direction direction) {
-        return new ResourceLocation("gravity_changer", "gravity_anchor_" + direction.getName());
+        return ResourceLocation.fromNamespaceAndPath("gravity_changer", "gravity_anchor_" + direction.getName());
     }
     
     public GravityAnchorItem(Direction _direction, Properties settings) {
@@ -57,7 +61,7 @@ public class GravityAnchorItem extends Item {
     }
     
     @Override
-    public void appendHoverText(ItemStack itemStack, Level world, List<Component> tooltip, TooltipFlag tooltipContext) {
+    public void appendHoverText(ItemStack itemStack, Item.TooltipContext tooltipContext, List<Component> tooltip, TooltipFlag tooltipFlag) {
         tooltip.add(
             Component.translatable("gravity_changer.gravity_anchor.tooltip.0")
                 .withStyle(ChatFormatting.GRAY)

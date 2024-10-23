@@ -32,7 +32,7 @@ public abstract class MobMixin {
     }
     
     @Redirect(
-        method = "Lnet/minecraft/world/entity/Mob;lookAt(Lnet/minecraft/world/entity/Entity;FF)V",
+        method = "lookAt(Lnet/minecraft/world/entity/Entity;FF)V",
         at = @At(
             value = "INVOKE",
             target = "Lnet/minecraft/world/entity/LivingEntity;getEyeY()D",
@@ -49,7 +49,7 @@ public abstract class MobMixin {
     }
     
     @Redirect(
-        method = "Lnet/minecraft/world/entity/Mob;lookAt(Lnet/minecraft/world/entity/Entity;FF)V",
+        method = "lookAt(Lnet/minecraft/world/entity/Entity;FF)V",
         at = @At(
             value = "INVOKE",
             target = "Lnet/minecraft/world/entity/Entity;getX()D",
@@ -66,7 +66,7 @@ public abstract class MobMixin {
     }
     
     @Redirect(
-        method = "Lnet/minecraft/world/entity/Mob;lookAt(Lnet/minecraft/world/entity/Entity;FF)V",
+        method = "lookAt(Lnet/minecraft/world/entity/Entity;FF)V",
         at = @At(
             value = "INVOKE",
             target = "Lnet/minecraft/world/entity/Entity;getZ()D",

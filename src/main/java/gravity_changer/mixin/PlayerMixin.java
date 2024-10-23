@@ -10,7 +10,6 @@ import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
-import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Abilities;
 import net.minecraft.world.entity.player.Player;
@@ -36,14 +35,11 @@ public abstract class PlayerMixin extends LivingEntity {
     private Abilities abilities;
     
     @Shadow
-    public abstract EntityDimensions getDimensions(Pose pose);
-    
-    @Shadow
     protected abstract boolean isStayingOnGroundSurface();
-    
+
     @Shadow
-    protected abstract boolean isAboveGround();
-    
+    protected abstract boolean isAboveGround(float f);
+
     protected PlayerMixin(EntityType<? extends LivingEntity> entityType, Level world) {
         super(entityType, world);
     }
@@ -97,7 +93,7 @@ public abstract class PlayerMixin extends LivingEntity {
     //}
     
     @Redirect(
-        method = "Lnet/minecraft/world/entity/player/Player;drop(Lnet/minecraft/world/item/ItemStack;ZZ)Lnet/minecraft/world/entity/item/ItemEntity;",
+        method = "drop(Lnet/minecraft/world/item/ItemStack;ZZ)Lnet/minecraft/world/entity/item/ItemEntity;",
         at = @At(
             value = "NEW",
             target = "(Lnet/minecraft/world/level/Level;DDDLnet/minecraft/world/item/ItemStack;)Lnet/minecraft/world/entity/item/ItemEntity;",
@@ -129,7 +125,7 @@ public abstract class PlayerMixin extends LivingEntity {
     }
     
     @WrapOperation(
-        method = "Lnet/minecraft/world/entity/player/Player;drop(Lnet/minecraft/world/item/ItemStack;ZZ)Lnet/minecraft/world/entity/item/ItemEntity;",
+        method = "drop(Lnet/minecraft/world/item/ItemStack;ZZ)Lnet/minecraft/world/entity/item/ItemEntity;",
         at = @At(
             value = "INVOKE",
             target = "Lnet/minecraft/world/entity/item/ItemEntity;setDeltaMovement(DDD)V"
@@ -147,18 +143,18 @@ public abstract class PlayerMixin extends LivingEntity {
     }
     
     @Inject(
-        method = "Lnet/minecraft/world/entity/player/Player;maybeBackOffFromEdge(Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/entity/MoverType;)Lnet/minecraft/world/phys/Vec3;",
+        method = "maybeBackOffFromEdge(Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/entity/MoverType;)Lnet/minecraft/world/phys/Vec3;",
         at = @At("HEAD"),
         cancellable = true
     )
     private void inject_adjustMovementForSneaking(Vec3 movement, MoverType type, CallbackInfoReturnable<Vec3> cir) {
-        Entity this_ = (Entity) (Object) this;
+        Entity this_ = this;
         Direction gravityDirection = GravityChangerAPI.getGravityDirection(this_);
         if (gravityDirection == Direction.DOWN) return;
         
         Vec3 playerMovement = RotationUtil.vecWorldToPlayer(movement, gravityDirection);
         
-        if (!this.abilities.flying && (type == MoverType.SELF || type == MoverType.PLAYER) && this.isStayingOnGroundSurface() && this.isAboveGround()) {
+        if (!this.abilities.flying && (type == MoverType.SELF || type == MoverType.PLAYER) && this.isStayingOnGroundSurface() && this.isAboveGround(maxUpStep())) {
             double d = playerMovement.x;
             double e = playerMovement.z;
             double var7 = 0.05D;
@@ -217,20 +213,20 @@ public abstract class PlayerMixin extends LivingEntity {
     }
     
     @WrapOperation(
-        method = "isAboveGround",
+        method = "canFallAtLeast",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/world/phys/AABB;move(DDD)Lnet/minecraft/world/phys/AABB;"
+            target = "Lnet/minecraft/world/level/Level;noCollision(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/AABB;)Z"
         )
     )
-    private AABB wrapOperation_method_30263_offset_0(AABB box, double x, double y, double z, Operation<AABB> original) {
-        Direction gravityDirection = GravityChangerAPI.getGravityDirection((Entity) (Object) this);
+    private boolean wrapOperation_method_30263_offset_0(Level level, Entity entity, AABB aabb, Operation<Boolean> original) {
+        Direction gravityDirection = GravityChangerAPI.getGravityDirection(this);
         if (gravityDirection == Direction.DOWN) {
-            return original.call(box, x, y, z);
+            return original.call(level, entity, aabb);
         }
         
-        Vec3 world = RotationUtil.vecPlayerToWorld(x, y, z, gravityDirection);
-        return original.call(box, world.x, world.y, world.z);
+        Vec3 world = RotationUtil.vecPlayerToWorld(entity.getX(), entity.getY(), entity.getZ(), gravityDirection);
+        return original.call(level, entity, aabb.move(world.x, world.y, world.z));
     }
     
     @WrapOperation(
@@ -303,7 +299,7 @@ public abstract class PlayerMixin extends LivingEntity {
         return RotationUtil.rotPlayerToWorld(original.call(attacker), attacker.getXRot(), gravityDirection).x;
     }
     
-    @ModifyArgs(
+    /*@ModifyArgs(
         method = "addParticlesAroundSelf",
         at = @At(
             value = "INVOKE",
@@ -318,7 +314,7 @@ public abstract class PlayerMixin extends LivingEntity {
         args.set(1, vec3d.x);
         args.set(2, vec3d.y);
         args.set(3, vec3d.z);
-    }
+    }*/
     
     @ModifyArgs(
         method = "aiStep",
@@ -347,7 +343,7 @@ public abstract class PlayerMixin extends LivingEntity {
     private AABB wrapOperation_canPlayerFitWithinBlocksAndEntitiesWhen_getBoundingBox(
         EntityDimensions dimensions, Vec3 pos, Operation<AABB> original
     ) {
-        Direction gravityDirection = GravityChangerAPI.getGravityDirection((Entity) (Object) this);
+        Direction gravityDirection = GravityChangerAPI.getGravityDirection(this);
         if (gravityDirection == Direction.DOWN) {
             return original.call(dimensions, pos);
         }

@@ -36,7 +36,7 @@ public abstract class FireworkRocketMixin extends Entity {
         return GravityChangerAPI.getGravityDirection((FireworkRocketEntity)(Object)this);
     }*/
     @ModifyVariable(
-        method = "Lnet/minecraft/world/entity/projectile/FireworkRocketEntity;tick()V",
+        method = "tick()V",
         at = @At(
             value = "STORE"
         )
