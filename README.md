@@ -4,8 +4,7 @@ This is a fork of qouteall's [GravityChanger](https://github.com/qouteall/Gravit
 GravityChanger is originally a fork of FusionFlux's [Gravity API](https://github.com/Fusion-Flux/Gravity-Api) for Fabric.
 Gravity API is originally a fork of Gaider10's [Gravity Changer](https://github.com/Gaider10/GravityChanger).
 
-Maintaining the fork because Immersive Portals mod depends on the Gravity changing mod, 
-and Fabric mod cannot depend on a Quilt mod.
+Maintaining the fork because I needed a gravity direction mod for 1.21, and it looks like qouteall is no longer active.
 
 This Gravity Changer mod is not identical to Fusion's Gravity API.
 **The two mods cannot be used interchangeably.**
@@ -44,23 +43,7 @@ By default, all living entities, projectiles and minecarts can change gravity.
 
 For other entity types, the entity types that are in tag `gravity_changer:allowed_special` can change gravity.
 
-### How to use the API
-
-#### Add dependency
-
-Add this into `repositories`
-```
-maven { url 'https://jitpack.io' }
-```
-
-Add this into `dependencies`
-```
-modImplementation("com.github.qouteall:GravityChanger:v1.0.2-mc1.20.1")
-```
-
-See [JitPack](https://jitpack.io/#qouteall/GravityChanger)
-
 ### Future development goal
 
-* Explore the possibility of using world-coordinate velocity (although it requires more mixin it's easier to debug and maintain) instead of entity-local velocity to simplify future development. Do aggressive rewrite (simpler and faster than many mixins) to MC collision code and use Lithium's collision code which is faster.
+* Just trying to make a non-buggy version for 1.21. At the very second qouteall updates GravityChanger to 1.21, this fork is discontinued.
 
