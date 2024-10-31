@@ -30,7 +30,7 @@ public class GravityInvertMobEffect extends MobEffect {
                     if (livingEntity.hasEffect(Holder.direct(INSTANCE))) {
                         component.applyGravityDirectionEffect(
                             component.getCurrGravityDirection().getOpposite(),
-                            null, 5
+                            null, 5, 0
                         );
                     }
                 }

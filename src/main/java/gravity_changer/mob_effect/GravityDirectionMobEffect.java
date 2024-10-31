@@ -67,7 +67,7 @@ public class GravityDirectionMobEffect extends MobEffect {
                         component.applyGravityDirectionEffect(
                             dirEffect.gravityDirection,
                             null,
-                            amplifier + 1.0
+                            amplifier + 1.0, 0
                         );
                     }
                 }

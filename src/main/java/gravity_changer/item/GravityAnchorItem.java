@@ -43,7 +43,7 @@ public class GravityAnchorItem extends Item {
                     if (item instanceof GravityAnchorItem anchorItem) {
                         component.applyGravityDirectionEffect(
                                 anchorItem.direction,
-                                null, 1000000
+                                null, 1000000, 0
                         );
                     }
                 }

@@ -51,7 +51,6 @@ public abstract class CameraMixin {
     private void wrapOperation_update_setPos_0(Camera instance, double x, double y, double z, Operation<Void> original) {
         Direction gravityDirection = GravityChangerAPI.getGravityDirection(entity);
         RotationAnimation animation = GravityChangerAPI.getRotationAnimation(entity);
-        Thread.dumpStack();
         if (animation == null) {
             original.call(this, x, y, z);
             return;
@@ -61,7 +60,6 @@ public abstract class CameraMixin {
         animation.update(timeMs);
 
         if (gravityDirection == Direction.DOWN && !animation.isInAnimation()) {
-            System.out.println("yey");
             original.call(this, x, y, z);
             return;
         }

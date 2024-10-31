@@ -56,7 +56,7 @@ public class GravityComponent implements Component, AutoSyncedComponent, CommonT
      * Fired every tick for every entity, both on client and server.
      * <p>
      * In the event, it can call
-     * {@link GravityComponent#applyGravityDirectionEffect(Direction, RotationParameters, double)}
+     * {@link GravityComponent#applyGravityDirectionEffect(Direction, RotationParameters, double, int)}
      * and
      * {@link GravityComponent#applyGravityStrengthEffect(double)}
      * (these two applying methods can also be called outside the event)
@@ -226,12 +226,20 @@ public class GravityComponent implements Component, AutoSyncedComponent, CommonT
             isFiringUpdateEvent = true;
             try {
                 GRAVITY_UPDATE_EVENT.invoker().update(entity, this);
+
                 if (delayApplyDirEffect != null) {
                     applyGravityDirectionEffect(
                         delayApplyDirEffect.direction(),
-                        delayApplyDirEffect.rotationParameters(), delayApplyDirEffect.priority()
+                        delayApplyDirEffect.rotationParameters(), delayApplyDirEffect.priority(), delayApplyDirEffect.timeLeft()
                     );
                     delayApplyDirEffect = null;
+                }
+                else if (timedEffect != null) {
+                    applyGravityDirectionEffect(
+                            timedEffect.direction(),
+                            timedEffect.rotationParameters(), timedEffect.priority(), timedEffect.timeLeft());
+                    if(timedEffect.timeLeft() > 0) timedEffect = timedEffect.lowerTimeLeft();
+                    else timedEffect = null;
                 }
                 currGravityStrength *= delayApplyStrengthEffect;
                 delayApplyStrengthEffect = 1.0;
@@ -260,13 +268,17 @@ public class GravityComponent implements Component, AutoSyncedComponent, CommonT
     private void sendSyncPacketToOtherPlayers() {
         GravityChangerComponents.GRAVITY_COMP_KEY.sync(entity, this, p -> p != entity);
     }
-    
+
+    private GravityDirEffect timedEffect = null;
+
     public void applyGravityDirectionEffect(
         @NotNull Direction direction,
         @Nullable RotationParameters rotationParameters,
-        double priority
+        double priority,
+        int time
     ) {
         if (isFiringUpdateEvent) {
+
             if (priority > currentEffectPriority) {
                 currentEffectPriority = priority;
                 currGravityDirection = direction;
@@ -277,13 +289,16 @@ public class GravityComponent implements Component, AutoSyncedComponent, CommonT
             }
         }
         else {
+            if (time != 0) timedEffect = new GravityDirEffect(direction, rotationParameters, priority, time);
+            else timedEffect = null;
+
             // When not firing event, store it on delayApplyEffect.
             // The effect could come from another entity ticking,
             // but there is no guarantee for ticking order between entities.
             // (the ticking order does not change according to EntityTickList)
             if (delayApplyDirEffect == null || priority > delayApplyDirEffect.priority()) {
                 delayApplyDirEffect = new GravityDirEffect(
-                    direction, rotationParameters, priority
+                    direction, rotationParameters, priority, time
                 );
             }
         }
@@ -572,8 +587,12 @@ public class GravityComponent implements Component, AutoSyncedComponent, CommonT
     private static record GravityDirEffect(
         @NotNull Direction direction,
         @Nullable RotationParameters rotationParameters,
-        double priority
+        double priority,
+        int timeLeft
     ) {
-    
+        public GravityDirEffect lowerTimeLeft()
+        {
+            return new GravityDirEffect(direction, rotationParameters, priority, Math.max(0, timeLeft-1));
+        }
     }
 }

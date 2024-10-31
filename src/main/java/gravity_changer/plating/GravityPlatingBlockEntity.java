@@ -52,6 +52,9 @@ import java.util.List;
  * Based on code from AmethystGravity (by CyborgCabbage)
  */
 public class GravityPlatingBlockEntity extends BlockEntity {
+
+    public static int resetTime = 0;
+
     private static final Logger LOGGER = LogUtils.getLogger();
     
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath("gravity_changer", "plating_block_entity");
@@ -320,7 +323,7 @@ public class GravityPlatingBlockEntity extends BlockEntity {
                         priority -= 10;
                     }
                     comp.applyGravityDirectionEffect(
-                        gravityEffectDir, null, priority
+                        gravityEffectDir, null, priority, resetTime
                     );
                     applies = true;
                 }
