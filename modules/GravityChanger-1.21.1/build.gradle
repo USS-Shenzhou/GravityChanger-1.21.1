@@ -4,9 +4,7 @@ plugins {
 	id "me.modmuss50.mod-publish-plugin" version "0.3.5"
 }
 
-var archives_base_name="gravity-changer"
 var changer_minecraft_version="1.21.1"
-var changer_yarn_mappings="1.21.1+build.3"
 var changer_loader_version="0.16.13"
 var changer_mod_version="1.3.0"
 var changer_archives_base_name="gravity-changer"
@@ -20,7 +18,7 @@ targetCompatibility = JavaVersion.VERSION_21
 
 archivesBaseName = changer_archives_base_name
 version = "${changer_mod_version}+mc${changer_minecraft_version}"
-group = "mortimer-kerman"
+group = "cn.ussshenzhou"
 
 repositories {
 	maven {
@@ -141,9 +139,9 @@ task printClasspath {
 	}
 }
 
-java {
-	withSourcesJar()
-}
+//java {
+//	withSourcesJar()
+//}
 
 publishMods {
 	file = remapJar.archiveFile
