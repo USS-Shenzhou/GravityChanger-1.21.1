@@ -12,13 +12,19 @@ group = mod_group_id
 repositories {
     mavenLocal()
     mavenCentral()
-    mavenLocal()
     flatDir {
         dir 'libs'
     }
     maven {
         name = "Sinytra"
         url = "https://maven.su5ed.dev/releases"
+    }
+    maven {
+        url "https://maven.shedaniel.me/"
+    }
+    maven {
+        name = 'Ladysnake'
+        url = 'https://maven.ladysnake.org/releases'
     }
 }
 
@@ -145,9 +151,34 @@ dependencies {
     jarJar("org.sinytra:connector:2.0.0-beta.7+1.21.1")
     additionalRuntimeClasspath "org.sinytra:connector:2.0.0-beta.7+1.21.1"
     // Add FFAPI dependency
-    runtimeOnly "org.sinytra.forgified-fabric-api:forgified-fabric-api:0.+"
+    implementation(jarJar("org.sinytra.forgified-fabric-api:forgified-fabric-api:0.+"))
     // Install desired Fabric mods. Make sure they remain unmapped at runtime
-    //runtimeOnly "some.fabric:mod:<version>"
+
+    implementation(jarJar("dev.onyxstudios.cardinal-components-api:cardinal-components-base:6.1.1") {
+        exclude group: "net.fabricmc.fabric-api"
+        exclude group: "net.fabricmc"
+    })
+    implementation(jarJar("dev.onyxstudios.cardinal-components-api:cardinal-components-entity:6.1.1") {
+        exclude group: "net.fabricmc.fabric-api"
+        exclude group: "net.fabricmc"
+    })
+    implementation(jarJar("dev.onyxstudios.cardinal-components-api:cardinal-components-world:6.1.1") {
+        exclude group: "net.fabricmc.fabric-api"
+        exclude group: "net.fabricmc"
+    })
+    implementation(jarJar("me.shedaniel.cloth:cloth-config-fabric:15.0.140") {
+        exclude group: "net.fabricmc.fabric-api"
+        exclude group: "net.fabricmc"
+    })
+    runtimeOnly(jarJar("mortimer-kerman:gravity-changer:1.+") {
+        exclude group: "me.shedaniel.cloth", module :"cloth-config-fabric"
+        exclude group: "dev.onyxstudios.cardinal-components-api", module :"cardinal-components-base"
+        exclude group: "dev.onyxstudios.cardinal-components-api", module :"cardinal-components-entity"
+        exclude group: "dev.onyxstudios.cardinal-components-api", module :"cardinal-components-world"
+        exclude group: "net.fabricmc", module: "fabric-loader"
+        exclude group: "net.fabricmc.fabric-api", module: "fabric-api"
+        exclude group: "maven.modrinth", module: "modmenu"
+    })
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
