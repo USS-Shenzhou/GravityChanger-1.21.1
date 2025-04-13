@@ -7,9 +7,17 @@ pluginManagement {
             name = "Sinytra"
             url = "https://maven.su5ed.dev/releases"
         }
+        maven {
+            url = 'https://maven.fabricmc.net/'
+        }
+        gradlePluginPortal()
     }
 }
 
 plugins {
     id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
 }
+
+rootProject.name = 'GravityWar'
+include 'modules:GravityChanger-1.21.1'
+project(':modules:GravityChanger-1.21.1').name = 'GravityChanger-1.21.1'
