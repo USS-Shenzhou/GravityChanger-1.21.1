@@ -75,15 +75,15 @@ dependencies {
 	// Replace modImplementation with modApi if you expose components in your own API
 	modApi "dev.onyxstudios.cardinal-components-api:cardinal-components-base:${changer_cca_version}"
 	// Includes Cardinal Components API as a Jar-in-Jar dependency (optional but recommended)
-	include "dev.onyxstudios.cardinal-components-api:cardinal-components-base:${changer_cca_version}"
+	//include "dev.onyxstudios.cardinal-components-api:cardinal-components-base:${changer_cca_version}"
 
 	modApi "dev.onyxstudios.cardinal-components-api:cardinal-components-entity:${changer_cca_version}"
 	// Includes Cardinal Components API as a Jar-in-Jar dependency (optional but recommended)
-	include "dev.onyxstudios.cardinal-components-api:cardinal-components-entity:${changer_cca_version}"
+	//include "dev.onyxstudios.cardinal-components-api:cardinal-components-entity:${changer_cca_version}"
 
 	modApi "dev.onyxstudios.cardinal-components-api:cardinal-components-world:${changer_cca_version}"
 	// Includes Cardinal Components API as a Jar-in-Jar dependency (optional but recommended)
-	include "dev.onyxstudios.cardinal-components-api:cardinal-components-world:${changer_cca_version}"
+	//include "dev.onyxstudios.cardinal-components-api:cardinal-components-world:${changer_cca_version}"
 
 }
 
