@@ -4,7 +4,6 @@ import com.llamalad7.mixinextras.sugar.Local;
 import gravity_changer.api.GravityChangerAPI;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.neoforge.common.CommonHooks;
 import org.spongepowered.asm.mixin.Mixin;

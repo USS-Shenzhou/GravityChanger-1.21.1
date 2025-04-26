@@ -142,9 +142,11 @@ dependencies {
     // For more info:
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
-    implementation("curse.maven:sodium-394468:6382651")
+    //implementation(jarJar("curse.maven:sodium-394468:6382651"))
 
-    implementation("cn.ussshenzhou:MadParticle:0.8.12+kamu")
+    implementation(jarJar("cn.ussshenzhou:MadParticle:0.8.12+kamu") {
+        exclude group: "curse.maven", module: "irisshaders-455508"
+    })
 
     implementation(jarJar("cn.ussshenzhou:t88:0.12.+") {
         exclude group: "curse.maven", module: "irisshaders-455508"
@@ -160,9 +162,9 @@ dependencies {
         exclude group: "org.sinytra.forgified-fabric-api", module: "fabric-rendering-data-attachment-v1"
         exclude group: "org.sinytra.forgified-fabric-api", module: "fabric-block-view-api-v2"
     }
-    implementation(jarJar(fileTree(dir: 'libs', include: ['*.jar'])))
+    //implementation(jarJar(fileTree(dir: 'libs', include: ['*.jar'])))
 
-    jarJar("org.sinytra:connector:2.0.0-beta.7+1.21.1")
+    implementation(jarJar("cn.ussshenzhou:section31:0.1.+"))
     additionalRuntimeClasspath "org.sinytra:connector:2.0.0-beta.7+1.21.1"
     // Add FFAPI dependency
     implementation(jarJar("org.sinytra.forgified-fabric-api:forgified-fabric-api:0.+"))
@@ -192,6 +194,19 @@ dependencies {
         exclude group: "net.fabricmc", module: "fabric-loader"
         exclude group: "net.fabricmc.fabric-api", module: "fabric-api"
         exclude group: "maven.modrinth", module: "modmenu"
+    })
+
+    implementation(jarJar("dev.onyxstudios.cardinal-components-api:cardinal-components-base:6.1.1"){
+        exclude group: "net.fabricmc"
+        exclude group: "net.fabricmc.fabric-api"
+    })
+    implementation(jarJar("dev.onyxstudios.cardinal-components-api:cardinal-components-entity:6.1.1"){
+        exclude group: "net.fabricmc"
+        exclude group: "net.fabricmc.fabric-api"
+    })
+    implementation(jarJar("dev.onyxstudios.cardinal-components-api:cardinal-components-world:6.1.1"){
+        exclude group: "net.fabricmc"
+        exclude group: "net.fabricmc.fabric-api"
     })
 }
 
