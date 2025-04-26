@@ -9,6 +9,9 @@
     "EntityMixin"
   ],
   "client": [
+    "LightTextureMixin",
+    "MinecraftMixin",
+    "SectionCompilerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

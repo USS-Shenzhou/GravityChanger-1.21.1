@@ -1,10 +1,11 @@
 package cn.ussshenzhou.gravitywar.border;
 
+import cn.ussshenzhou.gravitywar.util.DirectionHelper;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.neoforged.api.distmarker.Dist;
@@ -23,26 +24,34 @@ public class BorderRenderer {
 
     @SubscribeEvent
     public static void renderBorder(RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) {
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_CUTOUT_BLOCKS) {
             return;
         }
-        if (!shouldRenderBorder()) {
+        var alpha = shouldRenderBorder();
+        if (alpha == 0) {
             return;
         }
         RenderSystem.enableBlend();
         RenderSystem.enableDepthTest();
+        RenderSystem.disableCull();
         RenderSystem.blendFuncSeparate(
-                GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO
+                GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_COLOR, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO
         );
         RenderSystem.setShaderTexture(0, FORCEFIELD_LOCATION);
-        RenderSystem.depthMask(Minecraft.useShaderTransparency());
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderColor(0, alpha,  alpha, 1- alpha);
         BufferBuilder bufferbuilder = Tesselator.getInstance().begin(VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.POSITION_TEX);
-        fillVertices(bufferbuilder);
+        fillVertices(event, bufferbuilder);
         MeshData meshdata = bufferbuilder.build();
         if (meshdata != null) {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+            RenderSystem.getModelViewStack().pushMatrix();
+            RenderSystem.getModelViewStack().set(event.getModelViewMatrix());
+            RenderSystem.applyModelViewMatrix();
             BufferUploader.drawWithShader(meshdata);
+            RenderSystem.getModelViewStack().popMatrix();
+            meshdata.close();
         }
         RenderSystem.enableCull();
         RenderSystem.polygonOffset(0.0F, 0.0F);
@@ -53,14 +62,67 @@ public class BorderRenderer {
         RenderSystem.depthMask(true);
     }
 
-    private static boolean shouldRenderBorder() {
-        return true;
+    private static final float WARN_DISTANCE = 5;
+
+    private static float shouldRenderBorder() {
+        var camPos = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
+        float dis = (float) DirectionHelper.distanceToBoundary(camPos.x, camPos.y, camPos.z);
+        dis = 1 - (Mth.clamp(dis, 0, WARN_DISTANCE) / WARN_DISTANCE);
+        return dis;
     }
 
-    private static void fillVertices(BufferBuilder bufferbuilder) {
-        float t = (float) (Util.getMillis() % 3000L) / 3000.0F;
-        float f4 = (float) (-Mth.frac(camera.getPosition().y * 0.5));
-        float f5 = f4 + (float) d4;
-        bufferbuilder.addVertex(0, 0, 0).setColor(0xffff0000).setUv(0, 0);
+    private static final int RENDER_DISTANCE = 50;
+
+    private static void fillVertices(RenderLevelStageEvent event, BufferBuilder bufferbuilder) {
+        var poseStack = event.getPoseStack();
+        var camPos = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
+        poseStack.translate(-camPos.x, -camPos.y, -camPos.z);
+        bufferbuilder.addVertex(poseStack.last(), 0, 0, 0).setUv(0, 0);
+        bufferbuilder.addVertex(poseStack.last(), RENDER_DISTANCE, RENDER_DISTANCE, RENDER_DISTANCE).setUv(RENDER_DISTANCE, 0);
+        bufferbuilder.addVertex(poseStack.last(), RENDER_DISTANCE, RENDER_DISTANCE, -RENDER_DISTANCE).setUv(0, RENDER_DISTANCE);
+
+        bufferbuilder.addVertex(poseStack.last(), 0, 0, 0).setUv(0, 0);
+        bufferbuilder.addVertex(poseStack.last(), RENDER_DISTANCE, RENDER_DISTANCE, -RENDER_DISTANCE).setUv(RENDER_DISTANCE, 0);
+        bufferbuilder.addVertex(poseStack.last(), -RENDER_DISTANCE, RENDER_DISTANCE, -RENDER_DISTANCE).setUv(0, RENDER_DISTANCE);
+
+        bufferbuilder.addVertex(poseStack.last(), 0, 0, 0).setUv(0, 0);
+        bufferbuilder.addVertex(poseStack.last(), -RENDER_DISTANCE, RENDER_DISTANCE, -RENDER_DISTANCE).setUv(RENDER_DISTANCE, 0);
+        bufferbuilder.addVertex(poseStack.last(), -RENDER_DISTANCE, RENDER_DISTANCE, RENDER_DISTANCE).setUv(0, RENDER_DISTANCE);
+
+        bufferbuilder.addVertex(poseStack.last(), 0, 0, 0).setUv(0, 0);
+        bufferbuilder.addVertex(poseStack.last(), -RENDER_DISTANCE, RENDER_DISTANCE, RENDER_DISTANCE).setUv(RENDER_DISTANCE, 0);
+        bufferbuilder.addVertex(poseStack.last(), RENDER_DISTANCE, RENDER_DISTANCE, RENDER_DISTANCE).setUv(0, RENDER_DISTANCE);
+
+        bufferbuilder.addVertex(poseStack.last(), 0, 0, 0).setUv(0, 0);
+        bufferbuilder.addVertex(poseStack.last(), RENDER_DISTANCE, -RENDER_DISTANCE, RENDER_DISTANCE).setUv(RENDER_DISTANCE, 0);
+        bufferbuilder.addVertex(poseStack.last(), RENDER_DISTANCE, -RENDER_DISTANCE, -RENDER_DISTANCE).setUv(0, RENDER_DISTANCE);
+
+        bufferbuilder.addVertex(poseStack.last(), 0, 0, 0).setUv(0, 0);
+        bufferbuilder.addVertex(poseStack.last(), RENDER_DISTANCE, -RENDER_DISTANCE, -RENDER_DISTANCE).setUv(RENDER_DISTANCE, 0);
+        bufferbuilder.addVertex(poseStack.last(), -RENDER_DISTANCE, -RENDER_DISTANCE, -RENDER_DISTANCE).setUv(0, RENDER_DISTANCE);
+
+        bufferbuilder.addVertex(poseStack.last(), 0, 0, 0).setUv(0, 0);
+        bufferbuilder.addVertex(poseStack.last(), -RENDER_DISTANCE, -RENDER_DISTANCE, -RENDER_DISTANCE).setUv(RENDER_DISTANCE, 0);
+        bufferbuilder.addVertex(poseStack.last(), -RENDER_DISTANCE, -RENDER_DISTANCE, RENDER_DISTANCE).setUv(0, RENDER_DISTANCE);
+
+        bufferbuilder.addVertex(poseStack.last(), 0, 0, 0).setUv(0, 0);
+        bufferbuilder.addVertex(poseStack.last(), -RENDER_DISTANCE, -RENDER_DISTANCE, RENDER_DISTANCE).setUv(RENDER_DISTANCE, 0);
+        bufferbuilder.addVertex(poseStack.last(), RENDER_DISTANCE, -RENDER_DISTANCE, RENDER_DISTANCE).setUv(0, RENDER_DISTANCE);
+
+        bufferbuilder.addVertex(poseStack.last(), 0, 0, 0).setUv(0, 0);
+        bufferbuilder.addVertex(poseStack.last(), RENDER_DISTANCE, RENDER_DISTANCE, RENDER_DISTANCE).setUv(RENDER_DISTANCE, 0);
+        bufferbuilder.addVertex(poseStack.last(), RENDER_DISTANCE, -RENDER_DISTANCE, RENDER_DISTANCE).setUv(0, RENDER_DISTANCE);
+
+        bufferbuilder.addVertex(poseStack.last(), 0, 0, 0).setUv(0, 0);
+        bufferbuilder.addVertex(poseStack.last(), RENDER_DISTANCE, RENDER_DISTANCE, -RENDER_DISTANCE).setUv(RENDER_DISTANCE, 0);
+        bufferbuilder.addVertex(poseStack.last(), RENDER_DISTANCE, -RENDER_DISTANCE, -RENDER_DISTANCE).setUv(0, RENDER_DISTANCE);
+
+        bufferbuilder.addVertex(poseStack.last(), 0, 0, 0).setUv(0, 0);
+        bufferbuilder.addVertex(poseStack.last(), -RENDER_DISTANCE, RENDER_DISTANCE, -RENDER_DISTANCE).setUv(RENDER_DISTANCE, 0);
+        bufferbuilder.addVertex(poseStack.last(), -RENDER_DISTANCE, -RENDER_DISTANCE, -RENDER_DISTANCE).setUv(0, RENDER_DISTANCE);
+
+        bufferbuilder.addVertex(poseStack.last(), 0, 0, 0).setUv(0, 0);
+        bufferbuilder.addVertex(poseStack.last(), -RENDER_DISTANCE, RENDER_DISTANCE, RENDER_DISTANCE).setUv(RENDER_DISTANCE, 0);
+        bufferbuilder.addVertex(poseStack.last(), -RENDER_DISTANCE, -RENDER_DISTANCE, RENDER_DISTANCE).setUv(0, RENDER_DISTANCE);
     }
 }
