@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.chunk.RenderChunkRegion;
 import net.minecraft.client.renderer.chunk.SectionCompiler;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
 import net.neoforged.neoforge.client.event.AddSectionGeometryEvent;
 import org.spongepowered.asm.mixin.Final;
@@ -31,16 +32,20 @@ public abstract class SectionCompilerMixin {
             at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(FFF)V", shift = At.Shift.AFTER))
     private void gwRotateBlockVisual0(SectionPos sectionPos, RenderChunkRegion region, VertexSorting vertexSorting, SectionBufferBuilderPack sectionBufferBuilderPack, List<AddSectionGeometryEvent.AdditionalSectionRenderer> additionalRenderers, CallbackInfoReturnable<SectionCompiler.Results> cir,
                                       @Local PoseStack poseStack, @Local(ordinal = 2) BlockPos blockPos2) {
-        var rot = DirectionHelper.getPyramidRegion(blockPos2).getRotation();
-        poseStack.translate(0.5f, 0.5f, 0.5f);
-        poseStack.mulPose(rot);
-        poseStack.translate(-0.5f, -0.5f, -0.5f);
+        var dir = DirectionHelper.getPyramidRegion(blockPos2);
+        if (dir != Direction.DOWN) {
+            var rot = dir.getRotation();
+            poseStack.translate(0.5f, 0.5f, 0.5f);
+            poseStack.mulPose(rot);
+            poseStack.translate(-0.5f, -0.5f, -0.5f);
+        }
     }
 
     @ModifyArg(method = "compile(Lnet/minecraft/core/SectionPos;Lnet/minecraft/client/renderer/chunk/RenderChunkRegion;Lcom/mojang/blaze3d/vertex/VertexSorting;Lnet/minecraft/client/renderer/SectionBufferBuilderPack;Ljava/util/List;)Lnet/minecraft/client/renderer/chunk/SectionCompiler$Results;",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/block/BlockRenderDispatcher;renderBatched(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/BlockAndTintGetter;Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;ZLnet/minecraft/util/RandomSource;Lnet/neoforged/neoforge/client/model/data/ModelData;Lnet/minecraft/client/renderer/RenderType;)V"),
             index = 5)
-    private boolean gwRotateBlockVisual1(boolean par6) {
-        return false;
+    private boolean gwRotateBlockVisual1(boolean par6, @Local(ordinal = 2) BlockPos blockPos2) {
+
+        return DirectionHelper.getPyramidRegion(blockPos2) == Direction.DOWN;
     }
 }

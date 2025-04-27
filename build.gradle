@@ -183,11 +183,11 @@ dependencies {
         exclude group: "net.fabricmc.fabric-api"
         exclude group: "net.fabricmc"
     })
-    implementation(jarJar("me.shedaniel.cloth:cloth-config-fabric:15.0.140") {
+    implementation("me.shedaniel.cloth:cloth-config-fabric:15.0.140") {
         exclude group: "net.fabricmc.fabric-api"
         exclude group: "net.fabricmc"
-    })
-    jarJar(implementation(project(':modules:GravityChanger-1.21.1')) {
+    }
+    implementation(project(':modules:GravityChanger-1.21.1')) {
         exclude group: "me.shedaniel.cloth", module: "cloth-config-fabric"
         exclude group: "dev.onyxstudios.cardinal-components-api", module: "cardinal-components-base"
         exclude group: "dev.onyxstudios.cardinal-components-api", module: "cardinal-components-entity"
@@ -195,20 +195,7 @@ dependencies {
         exclude group: "net.fabricmc", module: "fabric-loader"
         exclude group: "net.fabricmc.fabric-api", module: "fabric-api"
         exclude group: "maven.modrinth", module: "modmenu"
-    })
-
-    implementation(jarJar("dev.onyxstudios.cardinal-components-api:cardinal-components-base:6.1.1"){
-        exclude group: "net.fabricmc"
-        exclude group: "net.fabricmc.fabric-api"
-    })
-    implementation(jarJar("dev.onyxstudios.cardinal-components-api:cardinal-components-entity:6.1.1"){
-        exclude group: "net.fabricmc"
-        exclude group: "net.fabricmc.fabric-api"
-    })
-    implementation(jarJar("dev.onyxstudios.cardinal-components-api:cardinal-components-world:6.1.1"){
-        exclude group: "net.fabricmc"
-        exclude group: "net.fabricmc.fabric-api"
-    })
+    }
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

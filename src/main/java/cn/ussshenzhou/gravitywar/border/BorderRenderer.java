@@ -39,7 +39,7 @@ public class BorderRenderer {
         );
         RenderSystem.setShaderTexture(0, FORCEFIELD_LOCATION);
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(0, alpha,  alpha, 1- alpha);
+        RenderSystem.setShaderColor(0, alpha, alpha, 1 - alpha);
         BufferBuilder bufferbuilder = Tesselator.getInstance().begin(VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.POSITION_TEX);
         fillVertices(event, bufferbuilder);
         MeshData meshdata = bufferbuilder.build();
@@ -62,9 +62,12 @@ public class BorderRenderer {
         RenderSystem.depthMask(true);
     }
 
-    private static final float WARN_DISTANCE = 5;
+    private static final float WARN_DISTANCE = 4.5f;
 
     private static float shouldRenderBorder() {
+        if (Minecraft.getInstance().player != null && !(Minecraft.getInstance().player.isCreative() || Minecraft.getInstance().player.isSpectator())) {
+            return 0;
+        }
         var camPos = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
         float dis = (float) DirectionHelper.distanceToBoundary(camPos.x, camPos.y, camPos.z);
         dis = 1 - (Mth.clamp(dis, 0, WARN_DISTANCE) / WARN_DISTANCE);
