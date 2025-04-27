@@ -24,7 +24,7 @@ public class BorderRenderer {
 
     @SubscribeEvent
     public static void renderBorder(RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_CUTOUT_BLOCKS) {
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_LEVEL) {
             return;
         }
         var alpha = shouldRenderBorder();
@@ -33,6 +33,7 @@ public class BorderRenderer {
         }
         RenderSystem.enableBlend();
         RenderSystem.enableDepthTest();
+        RenderSystem.depthMask(false);
         RenderSystem.disableCull();
         RenderSystem.blendFuncSeparate(
                 GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_COLOR, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO
