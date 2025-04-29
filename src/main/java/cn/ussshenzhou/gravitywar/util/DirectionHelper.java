@@ -21,7 +21,7 @@ public class DirectionHelper {
 
     public static Direction getPyramidRegion(double x, double y, double z) {
         if (x == 0 && y == 0 && z == 0) {
-            return UP;
+            return DOWN;
         }
         double absX = Math.abs(x);
         double absY = Math.abs(y);
@@ -32,7 +32,7 @@ public class DirectionHelper {
         }
 
         if (absY >= absX && absY >= absZ) {
-            return y > 0 ? DOWN : UP;
+            return y > 0 ? UP : DOWN;
         }
         if (absX >= absY && absX >= absZ) {
             return x > 0 ? WEST : EAST;
@@ -42,6 +42,17 @@ public class DirectionHelper {
 
     public static Direction getPyramidRegion(BlockPos pos) {
         return getPyramidRegion(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
+    }
+
+    public static Quaternionf getRotation(Direction dir) {
+        return switch (dir) {
+            case DOWN -> new Quaternionf();
+            case UP -> new Quaternionf().rotationX((float) Math.PI);
+            case NORTH -> new Quaternionf().rotationXYZ((float) (Math.PI / 2), 0.0F, (float) Math.PI);
+            case SOUTH -> new Quaternionf().rotationX((float) (Math.PI / 2));
+            case WEST -> new Quaternionf().rotationXYZ((float) (Math.PI / 2), 0.0F, (float) (Math.PI / 2));
+            case EAST -> new Quaternionf().rotationXYZ((float) (Math.PI / 2), 0.0F, (float) (-Math.PI / 2));
+        };
     }
 
     private static final double INV_SQRT2 = 1.0 / Math.sqrt(2.0);
@@ -128,9 +139,9 @@ public class DirectionHelper {
 
     private static Vec3 rotatePoint(Vec3 p, Matrix4f mat) {
         Vector4f v = new Vector4f(
-                (float)(p.x - PIVOT.x),
-                (float)(p.y - PIVOT.y),
-                (float)(p.z - PIVOT.z),
+                (float) (p.x - PIVOT.x),
+                (float) (p.y - PIVOT.y),
+                (float) (p.z - PIVOT.z),
                 1f
         );
         mat.transform(v);
