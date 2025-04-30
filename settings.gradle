@@ -19,5 +19,3 @@ plugins {
 }
 
 rootProject.name = 'GravityWar'
-//include 'modules:GravityChanger-1.21.1'
-//project(':modules:GravityChanger-1.21.1').name = 'GravityChanger-1.21.1'

@@ -1,7 +1,7 @@
 package cn.ussshenzhou.gravitywar.mixin;
 
+import cn.ussshenzhou.gravitywar.util.GravityChangerAPIProxy;
 import com.llamalad7.mixinextras.sugar.Local;
-import gravity_changer.api.GravityChangerAPI;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.LivingEntity;
@@ -18,7 +18,7 @@ public class CommonHooksMixin {
 
     @Redirect(method = "onLivingBreathe",at = @At(value = "INVOKE", target = "Lnet/minecraft/core/BlockPos;containing(DDD)Lnet/minecraft/core/BlockPos;"))
     private static BlockPos gravityChangerCompat(double x, double y, double z, @Local(argsOnly = true) LivingEntity entity) {
-        Direction gravityDirection = GravityChangerAPI.getGravityDirection(entity);
+        Direction gravityDirection = GravityChangerAPIProxy.getGravityDirection(entity);
         if (gravityDirection == Direction.DOWN) {
             return BlockPos.containing(x, y, z);
         }

@@ -75,7 +75,7 @@ public class BorderRenderer {
         return dis;
     }
 
-    private static final int RENDER_DISTANCE = 50;
+    private static final int RENDER_DISTANCE = 64;
 
     private static void fillVertices(RenderLevelStageEvent event, BufferBuilder bufferbuilder) {
         var poseStack = event.getPoseStack();

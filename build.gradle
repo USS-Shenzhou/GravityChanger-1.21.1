@@ -187,15 +187,15 @@ dependencies {
         exclude group: "net.fabricmc.fabric-api"
         exclude group: "net.fabricmc"
     }
-    //implementation(project(':modules:GravityChanger-1.21.1')) {
-    //    exclude group: "me.shedaniel.cloth", module: "cloth-config-fabric"
-    //    exclude group: "dev.onyxstudios.cardinal-components-api", module: "cardinal-components-base"
-    //    exclude group: "dev.onyxstudios.cardinal-components-api", module: "cardinal-components-entity"
-    //    exclude group: "dev.onyxstudios.cardinal-components-api", module: "cardinal-components-world"
-    //    exclude group: "net.fabricmc", module: "fabric-loader"
-    //    exclude group: "net.fabricmc.fabric-api", module: "fabric-api"
-    //    exclude group: "maven.modrinth", module: "modmenu"
-    //}
+    implementation('mortimer-kerman:gravity-changer:1.3.+') {
+        exclude group: "me.shedaniel.cloth", module: "cloth-config-fabric"
+        exclude group: "dev.onyxstudios.cardinal-components-api", module: "cardinal-components-base"
+        exclude group: "dev.onyxstudios.cardinal-components-api", module: "cardinal-components-entity"
+        exclude group: "dev.onyxstudios.cardinal-components-api", module: "cardinal-components-world"
+        exclude group: "net.fabricmc", module: "fabric-loader"
+        exclude group: "net.fabricmc.fabric-api", module: "fabric-api"
+        exclude group: "maven.modrinth", module: "modmenu"
+    }
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

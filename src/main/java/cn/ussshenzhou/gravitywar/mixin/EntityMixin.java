@@ -1,8 +1,8 @@
 package cn.ussshenzhou.gravitywar.mixin;
 
+import cn.ussshenzhou.gravitywar.util.GravityChangerAPIProxy;
 import cn.ussshenzhou.gravitywar.util.InterimCalculation;
-import gravity_changer.api.GravityChangerAPI;
-import gravity_changer.util.RotationUtil;
+import cn.ussshenzhou.gravitywar.util.RotationUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
@@ -51,7 +51,7 @@ public abstract class EntityMixin implements IEntityExtension {
     @Unique
     private Vec3 gravityChangerCompat0(Entity instance) {
         var vec3d = instance.getDeltaMovement();
-        Direction gravityDirection = GravityChangerAPI.getGravityDirection(instance);
+        Direction gravityDirection = GravityChangerAPIProxy.getGravityDirection(instance);
         if (gravityDirection == Direction.DOWN) {
             return vec3d;
         }
@@ -61,7 +61,7 @@ public abstract class EntityMixin implements IEntityExtension {
 
     @Unique
     private Vec3 gravityChangerCompat1(Vec3 vec3d) {
-        Direction gravityDirection = GravityChangerAPI.getGravityDirection((Entity) (Object) this);
+        Direction gravityDirection = GravityChangerAPIProxy.getGravityDirection((Entity) (Object) this);
         if (gravityDirection == Direction.DOWN) {
             return vec3d;
         }
