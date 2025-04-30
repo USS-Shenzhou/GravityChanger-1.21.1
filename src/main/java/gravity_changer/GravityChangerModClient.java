@@ -21,14 +21,14 @@ public class GravityChangerModClient implements ClientModInitializer {
                 if (client.player == null) {
                     return;
                 }
-                if (displayPreviewWarning) {
-                    displayPreviewWarning = false;
-                    client.player.sendSystemMessage(
-                        Component.translatable("gravity_changer.preview").append(
-                            GCUtil.getLinkText(ISSUE_LINK)
-                        )
-                    );
-                }
+                //if (displayPreviewWarning) {
+                //    displayPreviewWarning = false;
+                //    client.player.sendSystemMessage(
+                //        Component.translatable("gravity_changer.preview").append(
+                //            GCUtil.getLinkText(ISSUE_LINK)
+                //        )
+                //    );
+                //}
             }
         });
         

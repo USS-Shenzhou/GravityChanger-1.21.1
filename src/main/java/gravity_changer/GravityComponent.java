@@ -468,7 +468,7 @@ public class GravityComponent implements Component, AutoSyncedComponent, CommonT
                 entityBoundingBox, totalCollisionBox, movingDirection
             );
             if (entity instanceof Player) {
-                LOGGER.info("Adjusting player position {} {}", positionAdjustmentOffset, entity);
+                LOGGER.debug("Adjusting player position {} {}", positionAdjustmentOffset, entity);
             }
             entity.setPos(entity.position().add(positionAdjustmentOffset));
         }

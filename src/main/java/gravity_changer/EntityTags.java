@@ -5,9 +5,14 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.item.FallingBlockEntity;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.projectile.EyeOfEnder;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.vehicle.Minecart;
+import net.minecraft.world.level.block.FallingBlock;
 
 public class EntityTags {
     /**
@@ -21,20 +26,23 @@ public class EntityTags {
      * It's not favorable to let every mod add blacklist entity tag for this.
      */
     public static final TagKey<EntityType<?>> ALLOWED_SPECIAL = TagKey.create(
-        BuiltInRegistries.ENTITY_TYPE.key(), ResourceLocation.fromNamespaceAndPath("gravity_changer", "allowed_special")
+            BuiltInRegistries.ENTITY_TYPE.key(), ResourceLocation.fromNamespaceAndPath("gravity_changer", "allowed_special")
     );
-    
+
     public static boolean canChangeGravity(Entity entity) {
         if (entity instanceof LivingEntity ||
-            entity instanceof Projectile ||
-            entity instanceof Minecart
+                entity instanceof Projectile ||
+                entity instanceof Minecart ||
+                entity instanceof ItemEntity ||
+                entity instanceof FallingBlockEntity ||
+                entity instanceof ExperienceOrb
         ) {
             return true;
         }
-        
+
         return entity.getType().builtInRegistryHolder().is(ALLOWED_SPECIAL);
     }
-    
+
     public static boolean allowGravityTransformationInRendering(Entity entity) {
         return true;
     }
