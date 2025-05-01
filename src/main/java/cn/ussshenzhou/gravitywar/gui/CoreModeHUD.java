@@ -56,7 +56,6 @@ public class CoreModeHUD extends TPanel {
     public CoreModeHUD() {
         this.add(timer);
         timer.setCountdown(true);
-        timer.setCountDownSec(60 * 30);
         timer.start();
         timer.setShowFullFormat(true);
         timer.setFontSize(14);
