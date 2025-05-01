@@ -11,6 +11,8 @@ import net.minecraft.client.renderer.chunk.SectionCompiler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.neoforge.client.event.AddSectionGeometryEvent;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -31,9 +33,11 @@ public abstract class SectionCompilerMixin {
     @Inject(method = "compile(Lnet/minecraft/core/SectionPos;Lnet/minecraft/client/renderer/chunk/RenderChunkRegion;Lcom/mojang/blaze3d/vertex/VertexSorting;Lnet/minecraft/client/renderer/SectionBufferBuilderPack;Ljava/util/List;)Lnet/minecraft/client/renderer/chunk/SectionCompiler$Results;",
             at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(FFF)V", shift = At.Shift.AFTER))
     private void gwRotateBlockVisual0(SectionPos sectionPos, RenderChunkRegion region, VertexSorting vertexSorting, SectionBufferBuilderPack sectionBufferBuilderPack, List<AddSectionGeometryEvent.AdditionalSectionRenderer> additionalRenderers, CallbackInfoReturnable<SectionCompiler.Results> cir,
-                                      @Local PoseStack poseStack, @Local(ordinal = 2) BlockPos blockPos2) {
+                                      @Local PoseStack poseStack, @Local(ordinal = 2) BlockPos blockPos2, @Local BlockState blockstate) {
         var dir = DirectionHelper.getPyramidRegion(blockPos2);
-        if (dir != Direction.DOWN) {
+        if (dir != Direction.DOWN
+                && !blockstate.hasProperty(BlockStateProperties.AXIS)
+        ) {
             var rot = DirectionHelper.getRotation(dir);
             poseStack.translate(0.5f, 0.5f, 0.5f);
             poseStack.mulPose(rot);

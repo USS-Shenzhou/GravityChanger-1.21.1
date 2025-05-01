@@ -18,6 +18,34 @@ public class RotationUtil {
     private static final Direction[][] DIR_WORLD_TO_PLAYER = new Direction[6][6];
     private static final Direction[][] DIR_PLAYER_TO_WORLD = new Direction[6][6];
 
+    // === Quaternions for each gravity direction ===
+
+    private static final Quaternionf[] WORLD_ROT = new Quaternionf[6];
+    private static final Quaternionf[] CAMERA_ROT = new Quaternionf[6];
+
+    static {
+        // DOWN = default
+        WORLD_ROT[Direction.DOWN.get3DDataValue()] = new Quaternionf();
+        // UP   = flip around Z
+        WORLD_ROT[Direction.UP.get3DDataValue()] = Axis.ZP.rotationDegrees(-180);
+        // NORTH = tilt forward 90° around X
+        WORLD_ROT[Direction.NORTH.get3DDataValue()] = Axis.XP.rotationDegrees(-90);
+        // SOUTH = NORTH + flip 180° around Y
+        WORLD_ROT[Direction.SOUTH.get3DDataValue()] = new Quaternionf(WORLD_ROT[Direction.NORTH.get3DDataValue()])
+                .mul(Axis.YP.rotationDegrees(180));
+        // WEST  = tilt forward 90° + turn left 90°
+        WORLD_ROT[Direction.WEST.get3DDataValue()] = new Quaternionf(WORLD_ROT[Direction.NORTH.get3DDataValue()])
+                .mul(Axis.YP.rotationDegrees(-90));
+        // EAST  = tilt forward 90° + turn right 90°
+        WORLD_ROT[Direction.EAST.get3DDataValue()] = new Quaternionf(WORLD_ROT[Direction.NORTH.get3DDataValue()])
+                .mul(Axis.YP.rotationDegrees(90));
+
+        // Camera (entity) rotation is inverse of world rotation
+        for (int i = 0; i < 6; i++) {
+            CAMERA_ROT[i] = new Quaternionf(WORLD_ROT[i]).conjugate();
+        }
+    }
+
     static {
         for (Direction gravity : Direction.values()) {
             int g = gravity.get3DDataValue();
@@ -187,34 +215,6 @@ public class RotationUtil {
     public static AABB makeBoxFromDimensions(EntityDimensions dims, Direction gravity, Vec3 pos) {
         AABB raw = dims.makeBoundingBox(0, 0, 0);
         return boxPlayerToWorld(raw, gravity).move(pos);
-    }
-
-    // === Quaternions for each gravity direction ===
-
-    private static final Quaternionf[] WORLD_ROT = new Quaternionf[6];
-    private static final Quaternionf[] CAMERA_ROT = new Quaternionf[6];
-
-    static {
-        // DOWN = default
-        WORLD_ROT[Direction.DOWN.get3DDataValue()] = new Quaternionf();
-        // UP   = flip around Z
-        WORLD_ROT[Direction.UP.get3DDataValue()] = Axis.ZP.rotationDegrees(-180);
-        // NORTH = tilt forward 90° around X
-        WORLD_ROT[Direction.NORTH.get3DDataValue()] = Axis.XP.rotationDegrees(-90);
-        // SOUTH = NORTH + flip 180° around Y
-        WORLD_ROT[Direction.SOUTH.get3DDataValue()] = new Quaternionf(WORLD_ROT[Direction.NORTH.get3DDataValue()])
-                .mul(Axis.YP.rotationDegrees(180));
-        // WEST  = tilt forward 90° + turn left 90°
-        WORLD_ROT[Direction.WEST.get3DDataValue()] = new Quaternionf(WORLD_ROT[Direction.NORTH.get3DDataValue()])
-                .mul(Axis.YP.rotationDegrees(-90));
-        // EAST  = tilt forward 90° + turn right 90°
-        WORLD_ROT[Direction.EAST.get3DDataValue()] = new Quaternionf(WORLD_ROT[Direction.NORTH.get3DDataValue()])
-                .mul(Axis.YP.rotationDegrees(90));
-
-        // Camera (entity) rotation is inverse of world rotation
-        for (int i = 0; i < 6; i++) {
-            CAMERA_ROT[i] = new Quaternionf(WORLD_ROT[i]).conjugate();
-        }
     }
 
     /** Quaternion to rotate player→world under given gravity */
