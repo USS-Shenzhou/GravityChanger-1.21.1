@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ScreenEffectRenderer.class)
 public abstract class ScreenEffectRendererMixin {
-    @Inject(
+    /*@Inject(
         method = "getViewBlockingState(Lnet/minecraft/world/entity/player/Player;)Lnet/minecraft/world/level/block/state/BlockState;",
         at = @At("HEAD"),
         cancellable = true
@@ -44,5 +44,5 @@ public abstract class ScreenEffectRendererMixin {
         }
         
         cir.setReturnValue(null);
-    }
+    }*/
 }
