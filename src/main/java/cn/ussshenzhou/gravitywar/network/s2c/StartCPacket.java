@@ -1,0 +1,95 @@
+package cn.ussshenzhou.gravitywar.network.s2c;
+
+import cn.ussshenzhou.gravitywar.game.*;
+import cn.ussshenzhou.t88.config.ConfigHelper;
+import cn.ussshenzhou.t88.gui.HudManager;
+import cn.ussshenzhou.t88.gui.widegt.TComponent;
+import cn.ussshenzhou.t88.network.annotation.ClientHandler;
+import cn.ussshenzhou.t88.network.annotation.Decoder;
+import cn.ussshenzhou.t88.network.annotation.Encoder;
+import cn.ussshenzhou.t88.network.annotation.NetPacket;
+import net.minecraft.core.Direction;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+
+import java.util.HashSet;
+import java.util.Map;
+import java.util.UUID;
+
+/**
+ * @author USS_Shenzhou
+ */
+@NetPacket
+public class StartCPacket {
+    public Map<UUID, Direction> playerToTeam;
+    public MatchPhase phase;
+    public MatchMode mode;
+    public int maxPlayerPerTeam;
+    public int victoryScore;
+    public int preparePhase;
+    public int battlePhase;
+    public int finalPhase;
+
+    public StartCPacket(Map<UUID, Direction> playerToTeam, MatchPhase phase, MatchMode mode, int maxPlayerPerTeam, int victoryScore, int preparePhase, int battlePhase, int finalPhase) {
+        this.playerToTeam = playerToTeam;
+        this.phase = phase;
+        this.mode = mode;
+        this.maxPlayerPerTeam = maxPlayerPerTeam;
+        this.victoryScore = victoryScore;
+        this.preparePhase = preparePhase;
+        this.battlePhase = battlePhase;
+        this.finalPhase = finalPhase;
+    }
+
+    @Decoder
+    public StartCPacket(FriendlyByteBuf buf) {
+        this.playerToTeam = buf.readMap(StreamCodec.ofMember((uuid, b) -> {
+                    b.writeUUID(uuid);
+                }, b -> b.readUUID()),
+                StreamCodec.ofMember((dir, b) -> {
+                    b.writeEnum(dir);
+                }, b -> b.readEnum(Direction.class)));
+        this.phase = buf.readEnum(MatchPhase.class);
+        this.mode = buf.readEnum(MatchMode.class);
+        this.maxPlayerPerTeam = buf.readVarInt();
+        this.victoryScore = buf.readVarInt();
+        this.preparePhase = buf.readVarInt();
+        this.battlePhase = buf.readVarInt();
+        this.finalPhase = buf.readVarInt();
+    }
+
+    @Encoder
+    public void encode(FriendlyByteBuf buf) {
+        buf.writeMap(playerToTeam, StreamCodec.ofMember((uuid, b) -> {
+                    b.writeUUID(uuid);
+                }, b -> b.readUUID()),
+                StreamCodec.ofMember((dir, b) -> {
+                    b.writeEnum(dir);
+                }, b -> b.readEnum(Direction.class)));
+        buf.writeEnum(phase);
+        buf.writeEnum(mode);
+        buf.writeVarInt(maxPlayerPerTeam);
+        buf.writeVarInt(victoryScore);
+        buf.writeVarInt(preparePhase);
+        buf.writeVarInt(battlePhase);
+        buf.writeVarInt(finalPhase);
+    }
+
+    @ClientHandler
+    public void handler(IPayloadContext context) {
+        ClientGameManager.clear();
+        HudManager.removeInstanceOf(TComponent.class);
+        GameManager.PLAYER_TO_TEAM.putAll(playerToTeam);
+        playerToTeam.forEach((uuid, direction) ->
+                GameManager.TEAM_TO_PLAYER.computeIfAbsent(direction, d -> new HashSet<>()).add(uuid));
+        GameManager.phase = phase;
+        GameManager.mode = mode;
+        GameManager.maxPlayerPerTeam = maxPlayerPerTeam;
+        GameManager.victoryScore = victoryScore;
+        ConfigHelper.getConfigWrite(GravityWarConfig.class, c -> c.preparePhase = preparePhase);
+        ConfigHelper.getConfigWrite(GravityWarConfig.class, c -> c.battlePhase = battlePhase);
+        ConfigHelper.getConfigWrite(GravityWarConfig.class, c -> c.finalPhase = finalPhase);
+        ClientGameManager.start();
+    }
+}

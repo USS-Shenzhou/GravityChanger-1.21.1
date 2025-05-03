@@ -1,4 +1,4 @@
-package cn.ussshenzhou.gravitywar.mek;
+package cn.ussshenzhou.gravitywar.game;
 
 import cn.ussshenzhou.t88.config.TConfig;
 

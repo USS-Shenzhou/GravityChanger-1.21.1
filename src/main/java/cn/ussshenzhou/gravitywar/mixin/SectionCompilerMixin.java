@@ -38,6 +38,9 @@ public abstract class SectionCompilerMixin {
         if (dir != Direction.DOWN
                 && !blockstate.hasProperty(BlockStateProperties.AXIS)
         ) {
+            if (dir != Direction.UP) {
+                dir = dir.getOpposite();
+            }
             var rot = DirectionHelper.getRotation(dir);
             poseStack.translate(0.5f, 0.5f, 0.5f);
             poseStack.mulPose(rot);

@@ -6,11 +6,14 @@
   "refmap": "gravitywar.refmap.json",
   "mixins": [
     "CommonHooksMixin",
-    "EntityMixin"
+    "EntityMixin",
+    "VillagerMixin"
   ],
   "client": [
+    "HumanoidArmorLayerMixin",
     "LightTextureMixin",
     "MinecraftMixin",
+    "ParticleMixin",
     "ScreenEffectRendererMixin",
     "SectionCompilerMixin"
   ],

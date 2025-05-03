@@ -1,5 +1,7 @@
 package cn.ussshenzhou.gravitywar.gui;
 
+import cn.ussshenzhou.gravitywar.game.ClientGameManager;
+import cn.ussshenzhou.gravitywar.util.ColorHelper;
 import cn.ussshenzhou.t88.gui.HudManager;
 import cn.ussshenzhou.t88.gui.util.Border;
 import cn.ussshenzhou.t88.gui.util.HorizontalAlignment;
@@ -33,6 +35,9 @@ public abstract class AutoCloseHintHUD extends TPanel {
         this.mode.setAutoScroll(false);
         this.phase.setAutoScroll(false);
         this.desc.setAutoScroll(false);
+
+        ClientGameManager.getMyTeam()
+                .ifPresent(d -> this.mode.setForeground(ColorHelper.getARGB(d, 0xff)));
     }
 
     @Override

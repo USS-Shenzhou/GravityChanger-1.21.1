@@ -12,11 +12,11 @@ public class ColorHelper {
     public static int getRGB(Direction direction) {
         return switch (direction) {
             case NORTH -> 0xEDE20C;
-            case SOUTH -> 0xEB94C2;
+            case SOUTH -> 0xFA9DCF;
             case EAST -> 0xDB181F;
             case WEST -> 0x4892Ff;
             case UP -> 0x000000;
-            case DOWN -> 0xffffff;
+            case DOWN -> 0xF09D29;
         };
     }
 

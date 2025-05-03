@@ -1,7 +1,9 @@
 package cn.ussshenzhou.gravitywar.gui;
 
 import cn.ussshenzhou.gravitywar.GravityWar;
+import cn.ussshenzhou.gravitywar.game.ClientGameManager;
 import cn.ussshenzhou.gravitywar.util.ColorHelper;
+import cn.ussshenzhou.t88.gui.util.Border;
 import cn.ussshenzhou.t88.gui.util.HorizontalAlignment;
 import cn.ussshenzhou.t88.gui.util.LayoutHelper;
 import cn.ussshenzhou.t88.gui.widegt.*;
@@ -68,6 +70,18 @@ public class CoreModeHUD extends TPanel {
         this.add(southTeamStatus);
         this.add(eastTeamStatus);
         this.add(westTeamStatus);
+
+        ClientGameManager.getMyTeam().ifPresent(d -> {
+            var statusWithBackground = switch (d) {
+                case UP -> upTeamStatus;
+                case NORTH -> northTeamStatus;
+                case SOUTH -> southTeamStatus;
+                case EAST -> eastTeamStatus;
+                case WEST -> westTeamStatus;
+                case DOWN -> downTeamStatus;
+            };
+            statusWithBackground.setBorder(new Border(ColorHelper.getARGB(d, 0x80), 4));
+        });
     }
 
     @Override

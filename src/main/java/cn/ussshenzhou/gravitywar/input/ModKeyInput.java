@@ -1,8 +1,9 @@
 package cn.ussshenzhou.gravitywar.input;
 
-import cn.ussshenzhou.gravitywar.gui.CoreHUD;
-import cn.ussshenzhou.gravitywar.gui.MainScreen;
 import cn.ussshenzhou.gravitywar.gui.CoreModeHUD;
+import cn.ussshenzhou.gravitywar.gui.IntruderModeHUD;
+import cn.ussshenzhou.gravitywar.gui.MainScreen;
+import cn.ussshenzhou.gravitywar.gui.OpScreen;
 import cn.ussshenzhou.t88.gui.HudManager;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
@@ -24,6 +25,10 @@ public class ModKeyInput {
             "打开主界面", KeyConflictContext.IN_GAME, KeyModifier.NONE,
             InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_U, "key.categories.gravitywar"
     );
+    public static final KeyMapping OP_SCREEN = new KeyMapping(
+            "打开管理员界面", KeyConflictContext.IN_GAME, KeyModifier.ALT,
+            InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_U, "key.categories.gravitywar"
+    );
 
     @SubscribeEvent
     public static void onKeyInput(InputEvent.Key event) {
@@ -33,8 +38,8 @@ public class ModKeyInput {
         }
         if (PLAY_SCREEN.consumeClick()) {
             minecraft.setScreen(new MainScreen());
+        } else if (OP_SCREEN.consumeClick() && minecraft.player != null && minecraft.player.hasPermissions(4)) {
+            minecraft.setScreen(new OpScreen());
         }
-
-        HudManager.addIfSameClassNotExist(new CoreHUD.Prep());
     }
 }

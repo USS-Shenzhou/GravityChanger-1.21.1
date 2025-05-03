@@ -1,6 +1,9 @@
 package cn.ussshenzhou.gravitywar.gui;
 
 import cn.ussshenzhou.gravitywar.GravityWar;
+import cn.ussshenzhou.gravitywar.game.ClientGameManager;
+import cn.ussshenzhou.gravitywar.game.GameManager;
+import cn.ussshenzhou.gravitywar.network.c2s.PickTeamPacket;
 import cn.ussshenzhou.gravitywar.util.ColorHelper;
 import cn.ussshenzhou.t88.gui.advanced.TLabelButton;
 import cn.ussshenzhou.t88.gui.screen.TScreen;
@@ -8,6 +11,7 @@ import cn.ussshenzhou.t88.gui.util.Border;
 import cn.ussshenzhou.t88.gui.util.LayoutHelper;
 import cn.ussshenzhou.t88.gui.widegt.TImage;
 import cn.ussshenzhou.t88.gui.widegt.TLabel;
+import cn.ussshenzhou.t88.network.NetworkHelper;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -17,26 +21,42 @@ import net.minecraft.resources.ResourceLocation;
  */
 public class MainScreen extends TScreen {
     private final TImage background = new TImage(ResourceLocation.fromNamespaceAndPath(GravityWar.MODID, "textures/gui/cube.png"));
-    private final TLabelButton downTeamButton = new TLabelButton(Component.literal("白队 (0/17)"), b -> {
-
-    });
-    private final TLabelButton upTeamButton = new TLabelButton(Component.literal("黑队 (0/17)"), b -> {
-
-    });
-    private final TLabelButton northTeamButton = new TLabelButton(Component.literal("黄队 (0/17)"), b -> {
-
-    });
-    private final TLabelButton southTeamButton = new TLabelButton(Component.literal("粉队 (0/17)"), b -> {
-
-    });
-    private final TLabelButton eastTeamButton = new TLabelButton(Component.literal("红队 (0/17)"), b -> {
-
-    });
-    private final TLabelButton westTeamButton = new TLabelButton(Component.literal("蓝队 (0/17)"), b -> {
-
-    });
+    private final TLabelButton downTeamButton = new TLabelButton(Component.empty());
+    private final TLabelButton upTeamButton = new TLabelButton(Component.empty());
+    private final TLabelButton northTeamButton = new TLabelButton(Component.empty());
+    private final TLabelButton southTeamButton = new TLabelButton(Component.empty());
+    private final TLabelButton eastTeamButton = new TLabelButton(Component.empty());
+    private final TLabelButton westTeamButton = new TLabelButton(Component.empty());
     private final TLabel title0 = new TLabel(Component.literal("重力战争"));
     private final TLabel title1 = new TLabel(Component.literal("选择你想要加入的队伍。"));
+
+    public void update() {
+        downTeamButton.setText(Component.literal("橙队 (" + ClientGameManager.getPlayerNumber()[Direction.DOWN.ordinal()] + "/" + GameManager.maxPlayerPerTeam + ")"));
+        checkNumber(downTeamButton, Direction.DOWN);
+        upTeamButton.setText(Component.literal("黑队 (" + ClientGameManager.getPlayerNumber()[Direction.UP.ordinal()] + "/" + GameManager.maxPlayerPerTeam + ")"));
+        checkNumber(upTeamButton, Direction.UP);
+        northTeamButton.setText(Component.literal("黄队 (" + ClientGameManager.getPlayerNumber()[Direction.NORTH.ordinal()] + "/" + GameManager.maxPlayerPerTeam + ")"));
+        checkNumber(northTeamButton, Direction.NORTH);
+        southTeamButton.setText(Component.literal("粉队 (" + ClientGameManager.getPlayerNumber()[Direction.SOUTH.ordinal()] + "/" + GameManager.maxPlayerPerTeam + ")"));
+        checkNumber(southTeamButton, Direction.SOUTH);
+        eastTeamButton.setText(Component.literal("红队 (" + ClientGameManager.getPlayerNumber()[Direction.EAST.ordinal()] + "/" + GameManager.maxPlayerPerTeam + ")"));
+        checkNumber(eastTeamButton, Direction.EAST);
+        westTeamButton.setText(Component.literal("蓝队 (" + ClientGameManager.getPlayerNumber()[Direction.WEST.ordinal()] + "/" + GameManager.maxPlayerPerTeam + ")"));
+        checkNumber(westTeamButton, Direction.WEST);
+    }
+
+    private void checkNumber(TLabelButton button, Direction direction) {
+        if (ClientGameManager.getPlayerNumber()[direction.ordinal()] >= 17) {
+            button.setOnPress(b -> {
+            });
+            button.setForeground(0xffa0a0a0);
+        } else {
+            button.setOnPress(b -> {
+                NetworkHelper.sendToServer(new PickTeamPacket(direction));
+            });
+            button.setForeground(0xffffffff);
+        }
+    }
 
     public MainScreen() {
         super(Component.empty());
@@ -74,6 +94,7 @@ public class MainScreen extends TScreen {
         this.add(title0);
         title0.setFontSize(14);
         this.add(title1);
+        update();
     }
 
     @Override

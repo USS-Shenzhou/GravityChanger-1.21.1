@@ -35,13 +35,17 @@ public class DirectionHelper {
             return y > 0 ? UP : DOWN;
         }
         if (absX >= absY && absX >= absZ) {
-            return x > 0 ? WEST : EAST;
+            return x > 0 ? EAST : WEST;
         }
-        return z > 0 ? NORTH : SOUTH;
+        return z > 0 ? SOUTH : NORTH;
     }
 
     public static Direction getPyramidRegion(BlockPos pos) {
         return getPyramidRegion(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
+    }
+
+    public static Direction getPyramidRegion(Vec3 pos) {
+        return getPyramidRegion(pos.x, pos.y, pos.z);
     }
 
     public static Quaternionf getRotation(Direction dir) {

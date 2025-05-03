@@ -1,0 +1,24 @@
+package cn.ussshenzhou.gravitywar.gui;
+
+/**
+ * @author USS_Shenzhou
+ */
+public class IntruderHintHUD {
+    public static class Prep extends AutoCloseHintHUD {
+        public Prep() {
+            super("入侵", "准备阶段", "熟悉地形和操作，收集资源，打造装备");
+        }
+    }
+
+    public static class Battle extends AutoCloseHintHUD {
+        public Battle() {
+            super("入侵", "战斗阶段", "进入敌方关键点以得分");
+        }
+    }
+
+    public static class Final extends AutoCloseHintHUD {
+        public Final() {
+            super("入侵", "决胜阶段", "XDM加油冲冲冲！");
+        }
+    }
+}
