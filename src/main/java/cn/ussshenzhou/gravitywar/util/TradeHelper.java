@@ -18,6 +18,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemLore;
 import net.minecraft.world.item.component.Unbreakable;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -29,9 +30,11 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.item.ItemTossEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * @author USS_Shenzhou
@@ -55,20 +58,37 @@ public class TradeHelper {
         }
     }
 
-    public static final ItemStack MELOR_SWORD = new ItemStack(Items.DIAMOND_SWORD);
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    public static final Supplier<ItemStack> MELOR_SWORD_C = () -> {
+        var i = new ItemStack(Items.DIAMOND_SWORD);
+        var enc = Minecraft.getInstance().level.registryAccess().lookup(Registries.ENCHANTMENT).get();
+        i.enchant(enc.get(Enchantments.LOOTING).get(), 2);
+        i.enchant(enc.get(Enchantments.SHARPNESS).get(), 6);
 
-    static {
-        MELOR_SWORD.enchant(VanillaRegistries.createLookup().lookup(Registries.ENCHANTMENT).get().get(Enchantments.LOOTING).get(), 2);
-        MELOR_SWORD.enchant(VanillaRegistries.createLookup().lookup(Registries.ENCHANTMENT).get().get(Enchantments.SHARPNESS).get(), 6);
+        i.set(DataComponents.UNBREAKABLE, new Unbreakable(true));
+        i.set(DataComponents.LORE, new ItemLore(List.of(Component.literal("不可丢出"))));
+        i.set(DataComponents.ITEM_NAME, Component.literal("《方块杯空岛冠军》").withColor(0x21FFFD));
+        var tag = new CompoundTag();
+        tag.putBoolean("undroppable", true);
+        i.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+        return i;
+    };
 
-        MELOR_SWORD.set(DataComponents.UNBREAKABLE, new Unbreakable(true));
-        MELOR_SWORD.set(DataComponents.LORE, new ItemLore(List.of(), List.of(
-                Component.literal("不可丢出")
-        )));
-        MELOR_SWORD.set(DataComponents.ITEM_NAME, Component.literal("《方块杯空岛冠军》").withColor(0x21FFFD));
-    }
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    public static final Supplier<ItemStack> MELOR_SWORD_S = () -> {
+        var i = new ItemStack(Items.DIAMOND_SWORD);
+        var enc = ServerLifecycleHooks.getCurrentServer().registryAccess().lookup(Registries.ENCHANTMENT).get();
+        i.enchant(enc.get(Enchantments.LOOTING).get(), 2);
+        i.enchant(enc.get(Enchantments.SHARPNESS).get(), 6);
 
-    public static final List<ItemStack> UNDROPPABLE = List.of(MELOR_SWORD);
+        i.set(DataComponents.UNBREAKABLE, new Unbreakable(true));
+        i.set(DataComponents.LORE, new ItemLore(List.of(Component.literal("不可丢出"))));
+        i.set(DataComponents.ITEM_NAME, Component.literal("《方块杯空岛冠军》").withColor(0x21FFFD));
+        var tag = new CompoundTag();
+        tag.putBoolean("undroppable", true);
+        i.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+        return i;
+    };
 
     @SubscribeEvent
     public static void unDroppableItem(ItemTossEvent event) {
@@ -79,13 +99,8 @@ public class TradeHelper {
         }
     }
 
-    private static boolean undroppable(ItemStack itemStack) {
-        for (ItemStack i : UNDROPPABLE) {
-            if (ItemStack.isSameItemSameComponents(i, itemStack)) {
-                return true;
-            }
-        }
-        return false;
+    public static boolean undroppable(ItemStack itemStack) {
+        return itemStack.has(DataComponents.CUSTOM_DATA) && itemStack.get(DataComponents.CUSTOM_DATA).contains("undroppable");
     }
 
     @SubscribeEvent
@@ -95,7 +110,7 @@ public class TradeHelper {
             var nev = event.getEntity();
             if (!nev.level().getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY)) {
                 InventoryHelper.getAllAsStream(old.getInventory())
-                        .filter(itemStack -> UNDROPPABLE.stream().anyMatch(undroppable -> ItemStack.isSameItemSameComponents(undroppable, itemStack)))
+                        .filter(TradeHelper::undroppable)
                         .forEach(nev::addItem);
             }
         }
@@ -103,11 +118,8 @@ public class TradeHelper {
 
     @SubscribeEvent
     public static void evenItemFrame(PlayerInteractEvent.EntityInteract event) {
-        for (ItemStack i : UNDROPPABLE) {
-            if (ItemStack.isSameItemSameComponents(i, event.getItemStack())) {
-                event.setCanceled(true);
-                break;
-            }
+        if (undroppable(event.getItemStack())) {
+            event.setCanceled(true);
         }
     }
 

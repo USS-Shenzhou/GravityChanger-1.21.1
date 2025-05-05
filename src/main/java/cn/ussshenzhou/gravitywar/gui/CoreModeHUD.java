@@ -1,10 +1,12 @@
 package cn.ussshenzhou.gravitywar.gui;
 
 import cn.ussshenzhou.gravitywar.GravityWar;
+import cn.ussshenzhou.gravitywar.entity.CoreEntity;
 import cn.ussshenzhou.gravitywar.game.ClientGameManager;
 import cn.ussshenzhou.gravitywar.game.GameManager;
 import cn.ussshenzhou.gravitywar.game.GravityWarConfig;
 import cn.ussshenzhou.gravitywar.util.ColorHelper;
+import cn.ussshenzhou.gravitywar.util.DirectionHelper;
 import cn.ussshenzhou.t88.config.ConfigHelper;
 import cn.ussshenzhou.t88.gui.util.Border;
 import cn.ussshenzhou.t88.gui.util.HorizontalAlignment;
@@ -12,22 +14,26 @@ import cn.ussshenzhou.t88.gui.util.LayoutHelper;
 import cn.ussshenzhou.t88.gui.widegt.*;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 import java.util.Optional;
+import java.util.stream.StreamSupport;
 
 /**
  * @author USS_Shenzhou
  */
 public class CoreModeHUD extends TPanel {
-    private final TTimer timer = new TTimer() {
+    public final TTimer timer = new TTimer() {
         @Override
         public void tickT() {
             if (this.getTime() <= 60 * 1000) {
@@ -46,19 +52,19 @@ public class CoreModeHUD extends TPanel {
             ResourceLocation.fromNamespaceAndPath(GravityWar.MODID, "textures/gui/core_3.png"),
             Direction.DOWN);
     private final ColorfulImage upTeamStatus = new ColorfulImage(
-            ResourceLocation.fromNamespaceAndPath(GravityWar.MODID, "textures/gui/core_2.png"),
+            ResourceLocation.fromNamespaceAndPath(GravityWar.MODID, "textures/gui/core_3.png"),
             Direction.UP);
     private final ColorfulImage northTeamStatus = new ColorfulImage(
-            ResourceLocation.fromNamespaceAndPath(GravityWar.MODID, "textures/gui/core_1.png"),
+            ResourceLocation.fromNamespaceAndPath(GravityWar.MODID, "textures/gui/core_3.png"),
             Direction.NORTH);
     private final ColorfulImage southTeamStatus = new ColorfulImage(
-            ResourceLocation.fromNamespaceAndPath(GravityWar.MODID, "textures/gui/core_0.png"),
+            ResourceLocation.fromNamespaceAndPath(GravityWar.MODID, "textures/gui/core_3.png"),
             Direction.SOUTH);
     private final ColorfulImage eastTeamStatus = new ColorfulImage(
-            ResourceLocation.fromNamespaceAndPath(GravityWar.MODID, "textures/gui/core_2.png"),
+            ResourceLocation.fromNamespaceAndPath(GravityWar.MODID, "textures/gui/core_3.png"),
             Direction.EAST);
     private final ColorfulImage westTeamStatus = new ColorfulImage(
-            ResourceLocation.fromNamespaceAndPath(GravityWar.MODID, "textures/gui/core_1.png"),
+            ResourceLocation.fromNamespaceAndPath(GravityWar.MODID, "textures/gui/core_3.png"),
             Direction.WEST);
 
     public CoreModeHUD() {
@@ -107,8 +113,21 @@ public class CoreModeHUD extends TPanel {
                     .count();
             getRing(direction).playerNumber.setText(Component.literal(String.valueOf(n)));
         });
-        //TODO
-
+        int[] cores = new int[6];
+        int[] playerCount = new int[6];
+        StreamSupport.stream(Minecraft.getInstance().level.getEntities().getAll().spliterator(), false)
+                .forEach(e -> {
+                    if (e instanceof CoreEntity) {
+                        cores[DirectionHelper.getPyramidRegion(e.position()).ordinal()]++;
+                    } else if (e instanceof Player && e.isAlive() && GameManager.PLAYER_TO_TEAM.containsKey(e.getUUID())) {
+                        playerCount[GameManager.PLAYER_TO_TEAM.get(e.getUUID()).ordinal()]++;
+                    }
+                });
+        for (var d : Direction.values()) {
+            getRing(d).playerNumber.setText(Component.literal(String.valueOf(playerCount[d.ordinal()])));
+            int i = Mth.clamp(cores[d.ordinal()], 0, 3);
+            getRing(d).setImageLocation(ResourceLocation.fromNamespaceAndPath(GravityWar.MODID, "textures/gui/core_" + i + ".png"));
+        }
         super.tickT();
     }
 

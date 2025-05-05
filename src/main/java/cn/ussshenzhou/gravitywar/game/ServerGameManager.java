@@ -1,12 +1,10 @@
 package cn.ussshenzhou.gravitywar.game;
 
-import cn.ussshenzhou.gravitywar.network.s2c.DingPacket;
-import cn.ussshenzhou.gravitywar.network.s2c.OpAllPlayerChosenPacket;
-import cn.ussshenzhou.gravitywar.network.s2c.StartCPacket;
-import cn.ussshenzhou.gravitywar.network.s2c.TeamPlayerNumberPacket;
+import cn.ussshenzhou.gravitywar.network.s2c.*;
 import cn.ussshenzhou.t88.config.ConfigHelper;
 import cn.ussshenzhou.t88.network.NetworkHelper;
 import cn.ussshenzhou.t88.task.TaskHelper;
+import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -19,6 +17,7 @@ import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
@@ -32,6 +31,8 @@ import java.util.stream.Collectors;
  */
 @EventBusSubscriber(bus = EventBusSubscriber.Bus.GAME)
 public class ServerGameManager extends GameManager {
+
+    private static long startMs = 0;
 
     public static MinecraftServer getServer() {
         return ServerLifecycleHooks.getCurrentServer();
@@ -88,7 +89,7 @@ public class ServerGameManager extends GameManager {
                 .map(ServerGameManager::getPlayerS)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .filter(p->p.hasPermissions(2))
+                .filter(p -> p.hasPermissions(2))
                 .findFirst()
                 .map(Entity::getUUID);
     }
@@ -102,6 +103,9 @@ public class ServerGameManager extends GameManager {
     }
 
     public static void teleportWithDiffuse(Player player, BlockPos pos) {
+        if (pos == null) {
+            return;
+        }
         var r = ThreadLocalRandom.current();
         player.teleportTo(pos.getX() + r.nextDouble() * 2 - 1,
                 pos.getY() + r.nextDouble() * 2 - 1,
@@ -149,6 +153,7 @@ public class ServerGameManager extends GameManager {
             ));
             manager = MatchManager.create(mode);
             manager.startServer();
+            startMs = System.currentTimeMillis();
         }, 10);
     }
 
@@ -167,6 +172,9 @@ public class ServerGameManager extends GameManager {
 
     @SubscribeEvent
     public static void cancelFriendlyFire(LivingIncomingDamageEvent event) {
+        if (event.getEntity().level().isClientSide()) {
+            return;
+        }
         if (event.getEntity() instanceof Player player0
                 && event.getSource().getEntity() instanceof Player player1) {
             if (player0.getId() != player1.getId()
@@ -175,6 +183,44 @@ public class ServerGameManager extends GameManager {
             } else if (phase == MatchPhase.PREP) {
                 event.setCanceled(true);
             }
+        }
+    }
+
+    @SubscribeEvent
+    public static void disconnect(PlayerEvent.PlayerLoggedOutEvent event) {
+        var player = event.getEntity();
+        if (player.level().isClientSide()) {
+            return;
+        }
+        if (PLAYER_TO_TEAM.containsKey(player.getUUID()) && phase == MatchPhase.CHOOSE) {
+            TEAM_TO_PLAYER.get(PLAYER_TO_TEAM.get(player.getUUID())).remove(player.getUUID());
+            PLAYER_TO_TEAM.remove(player.getUUID());
+            var number = new int[6];
+            TEAM_TO_PLAYER.forEach((direction, uuids) -> number[direction.ordinal()] = uuids.size());
+            NetworkHelper.sendToAllPlayers(new TeamPlayerNumberPacket(number));
+        }
+    }
+
+    @SubscribeEvent
+    public static void reconnect(PlayerEvent.PlayerLoggedInEvent event) {
+        var player = event.getEntity();
+        if (player.level().isClientSide()) {
+            return;
+        }
+        if (PLAYER_TO_TEAM.containsKey(player.getUUID()) && phase != MatchPhase.CHOOSE) {
+            var cfg = ConfigHelper.getConfigRead(GravityWarConfig.class);
+            NetworkHelper.sendToPlayer((ServerPlayer) player, new DingPacket());
+            NetworkHelper.sendToPlayer((ServerPlayer) player, new StartCPacket(
+                    PLAYER_TO_TEAM,
+                    phase,
+                    mode,
+                    maxPlayerPerTeam,
+                    victoryScore,
+                    cfg.preparePhase,
+                    cfg.battlePhase,
+                    cfg.finalPhase
+            ));
+            NetworkHelper.sendToPlayer((ServerPlayer) player, new TimeCheckPacket(startMs));
         }
     }
 }

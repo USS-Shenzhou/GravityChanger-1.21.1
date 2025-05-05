@@ -1,8 +1,7 @@
-package cn.ussshenzhou.gravitywar;
+package cn.ussshenzhou.gravitywar.util;
 
 import cn.ussshenzhou.gravitywar.game.GameManager;
 import cn.ussshenzhou.gravitywar.game.MatchPhase;
-import cn.ussshenzhou.gravitywar.util.DirectionHelper;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
@@ -26,7 +25,7 @@ public class BorderRenderer {
 
     @SubscribeEvent
     public static void renderBorder(RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_LEVEL && GameManager.phase != MatchPhase.PREP) {
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_LEVEL || GameManager.phase != MatchPhase.PREP) {
             return;
         }
         var alpha = shouldRenderBorder();

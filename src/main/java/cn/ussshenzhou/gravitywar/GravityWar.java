@@ -1,5 +1,6 @@
 package cn.ussshenzhou.gravitywar;
 
+import cn.ussshenzhou.gravitywar.entity.ModEntities;
 import cn.ussshenzhou.gravitywar.game.GravityWarConfig;
 import cn.ussshenzhou.gravitywar.util.ModItems;
 import cn.ussshenzhou.t88.config.ConfigHelper;
@@ -23,5 +24,6 @@ public class GravityWar {
             throw new ModLoadingException(ModLoadingIssue.error("不支持Sodium"));
         }
         ModItems.ITEMS.register(modEventBus);
+        ModEntities.ENTITY_TYPES.register(modEventBus);
     }
 }

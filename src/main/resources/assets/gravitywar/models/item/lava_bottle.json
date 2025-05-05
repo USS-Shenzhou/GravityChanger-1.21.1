@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "villager:item/lava_bottle"
+    "layer0": "gravitywar:item/lava_bottle"
   }
 }

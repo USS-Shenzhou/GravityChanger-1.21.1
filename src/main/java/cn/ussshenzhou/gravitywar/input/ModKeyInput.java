@@ -1,9 +1,6 @@
 package cn.ussshenzhou.gravitywar.input;
 
-import cn.ussshenzhou.gravitywar.gui.CoreModeHUD;
-import cn.ussshenzhou.gravitywar.gui.IntruderModeHUD;
-import cn.ussshenzhou.gravitywar.gui.MainScreen;
-import cn.ussshenzhou.gravitywar.gui.OpScreen;
+import cn.ussshenzhou.gravitywar.gui.*;
 import cn.ussshenzhou.t88.gui.HudManager;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
@@ -41,7 +38,6 @@ public class ModKeyInput {
         } else if (OP_SCREEN.consumeClick() && minecraft.player != null && minecraft.player.hasPermissions(4)) {
             minecraft.setScreen(new OpScreen());
         }
-
-        HudManager.addIfSameClassNotExist(new IntruderModeHUD());
+        HudManager.addIfSameClassNotExist(new CoreModeHUD());
     }
 }

@@ -31,17 +31,17 @@ public class MainScreen extends TScreen {
     private final TLabel title1 = new TLabel(Component.literal("选择你想要加入的队伍。"));
 
     public void update() {
-        downTeamButton.setText(Component.literal("橙队 (" + ClientGameManager.getPlayerNumber()[Direction.DOWN.ordinal()] + "/" + GameManager.maxPlayerPerTeam + ")"));
+        downTeamButton.setText(Component.literal("黑队 (" + ClientGameManager.getPlayerNumber()[Direction.DOWN.ordinal()] + "/" + GameManager.maxPlayerPerTeam + ")"));
         checkNumber(downTeamButton, Direction.DOWN);
-        upTeamButton.setText(Component.literal("黑队 (" + ClientGameManager.getPlayerNumber()[Direction.UP.ordinal()] + "/" + GameManager.maxPlayerPerTeam + ")"));
+        upTeamButton.setText(Component.literal("橙队 (" + ClientGameManager.getPlayerNumber()[Direction.UP.ordinal()] + "/" + GameManager.maxPlayerPerTeam + ")"));
         checkNumber(upTeamButton, Direction.UP);
-        northTeamButton.setText(Component.literal("黄队 (" + ClientGameManager.getPlayerNumber()[Direction.NORTH.ordinal()] + "/" + GameManager.maxPlayerPerTeam + ")"));
+        northTeamButton.setText(Component.literal("粉队 (" + ClientGameManager.getPlayerNumber()[Direction.NORTH.ordinal()] + "/" + GameManager.maxPlayerPerTeam + ")"));
         checkNumber(northTeamButton, Direction.NORTH);
-        southTeamButton.setText(Component.literal("粉队 (" + ClientGameManager.getPlayerNumber()[Direction.SOUTH.ordinal()] + "/" + GameManager.maxPlayerPerTeam + ")"));
+        southTeamButton.setText(Component.literal("黄队 (" + ClientGameManager.getPlayerNumber()[Direction.SOUTH.ordinal()] + "/" + GameManager.maxPlayerPerTeam + ")"));
         checkNumber(southTeamButton, Direction.SOUTH);
-        eastTeamButton.setText(Component.literal("红队 (" + ClientGameManager.getPlayerNumber()[Direction.EAST.ordinal()] + "/" + GameManager.maxPlayerPerTeam + ")"));
+        eastTeamButton.setText(Component.literal("蓝队 (" + ClientGameManager.getPlayerNumber()[Direction.EAST.ordinal()] + "/" + GameManager.maxPlayerPerTeam + ")"));
         checkNumber(eastTeamButton, Direction.EAST);
-        westTeamButton.setText(Component.literal("蓝队 (" + ClientGameManager.getPlayerNumber()[Direction.WEST.ordinal()] + "/" + GameManager.maxPlayerPerTeam + ")"));
+        westTeamButton.setText(Component.literal("红队 (" + ClientGameManager.getPlayerNumber()[Direction.WEST.ordinal()] + "/" + GameManager.maxPlayerPerTeam + ")"));
         checkNumber(westTeamButton, Direction.WEST);
     }
 
@@ -111,32 +111,32 @@ public class MainScreen extends TScreen {
         );
         int buttonWidth = 70;
         int buttonHeight = 20;
-        upTeamButton.setAbsBounds(
+        downTeamButton.setAbsBounds(
                 (width - buttonWidth) / 2,
                 (int) (height * 0.8),
                 buttonWidth, buttonHeight
         );
-        downTeamButton.setAbsBounds(
+        upTeamButton.setAbsBounds(
                 (width - buttonWidth) / 2,
                 (int) (height * 0.2 - buttonHeight),
                 buttonWidth, buttonHeight
         );
-        southTeamButton.setAbsBounds(
+        northTeamButton.setAbsBounds(
                 ((width - backgroundSize) / 2 - buttonWidth) / 2,
                 (height - buttonHeight) / 2,
                 buttonWidth, buttonHeight
         );
-        northTeamButton.setAbsBounds(
+        southTeamButton.setAbsBounds(
                 ((width - backgroundSize) / 2 - buttonWidth) / 2 + (width - (width - backgroundSize) / 2),
                 (height - buttonHeight) / 2,
                 buttonWidth, buttonHeight
         );
-        westTeamButton.setAbsBounds(
+        eastTeamButton.setAbsBounds(
                 (int) (width / 2f + backgroundSize * 0.6),
                 (int) (height / 2f - backgroundSize * 0.6),
                 buttonWidth, buttonHeight
         );
-        eastTeamButton.setAbsBounds(
+        westTeamButton.setAbsBounds(
                 (int) (width / 2f - backgroundSize * 0.6 - buttonWidth),
                 (int) (height / 2f + backgroundSize * 0.6),
                 buttonWidth, buttonHeight

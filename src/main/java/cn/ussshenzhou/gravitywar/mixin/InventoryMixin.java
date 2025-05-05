@@ -16,11 +16,10 @@ public class InventoryMixin {
 
     @ModifyExpressionValue(method = "dropAll", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;isEmpty()Z"))
     private boolean checkUndroppable(boolean original, @Local ItemStack drop) {
-        for (ItemStack i : TradeHelper.UNDROPPABLE) {
-            if (ItemStack.isSameItemSameComponents(i, drop)) {
-                //noinspection PointlessBooleanExpression
-                return !false;
-            }
+        if (TradeHelper.undroppable(drop)) {
+            //noinspection PointlessBooleanExpression
+            return !false;
+
         }
         return original;
     }

@@ -15,6 +15,7 @@ import cn.ussshenzhou.t88.network.NetworkHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.*;
@@ -56,22 +57,28 @@ public class TradePanel extends TVerticalScrollContainer {
         addTrade(COBBLESTONE, 16, COOKED_CHICKEN, 12);
         addTrade(COBBLESTONE, 16, COOKED_BEEF, 8);
 
+        var enc = Minecraft.getInstance().level.registryAccess().lookup(Registries.ENCHANTMENT).get();
+
         if (TradeHelper.isKaMu(Minecraft.getInstance().player)) {
             assertVoid();
             add(new SelfTradeButton(new ItemStack(COBBLESTONE, 8), TradeHelper.LAVA_BOTTLE.copy())
-                    .setTooltip(Tooltip.create(Component.literal("§8上古失落的彩蛋。\n§7家乡特产。\n§7只有你能进行此交易。")))
+                    .setTooltip(Tooltip.create(Component.literal("§8上古失落的彩蛋\n§6家乡特产。\n§7只有你能进行此交易")))
             );
         }
         if (TradeHelper.isMelor(Minecraft.getInstance().player)) {
             assertVoid();
-            add(new SelfTradeButton(new ItemStack(Items.COBBLESTONE, 128), TradeHelper.MELOR_SWORD.copy())
-                    .setTooltip(Tooltip.create(Component.literal("§8上古失落的彩蛋。\n§b《方块杯空岛冠军》\n§7只有你能进行此交易。\n§8本来想给个茄子的但是懒得画。")))
+            add(new SelfTradeButton(new ItemStack(Items.COBBLESTONE, 128), TradeHelper.MELOR_SWORD_C.get().copy())
+                    .setTooltip(Tooltip.create(Component.literal("§8上古失落的彩蛋\n§b《方块杯空岛冠军》\n§7只有你能进行此交易\n§8本来想给个茄子的但是懒得画。")))
             );
         }
     }
 
     private void addTrade(Item from, int amount0, Item to, int amount1) {
         add(new SelfTradeButton(new ItemStack(from, amount0), new ItemStack(to, amount1)));
+    }
+
+    private void addTrade(Item from, int amount0, ItemStack to) {
+        add(new SelfTradeButton(new ItemStack(from, amount0), to.copy()));
     }
 
     private void assertVoid() {

@@ -19,6 +19,8 @@ import static net.minecraft.core.Direction.*;
  */
 public class DirectionHelper {
 
+    private static final int RANGE = 64;
+
     public static Direction getPyramidRegion(double x, double y, double z) {
         if (x == 0 && y == 0 && z == 0) {
             return DOWN;
@@ -27,7 +29,7 @@ public class DirectionHelper {
         double absY = Math.abs(y);
         double absZ = Math.abs(z);
 
-        if (absX > 50 || absY > 50 || absZ > 50) {
+        if (absX > RANGE || absY > RANGE || absZ > RANGE) {
             return DOWN;
         }
 

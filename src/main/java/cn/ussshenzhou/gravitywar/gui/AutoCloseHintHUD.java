@@ -42,11 +42,10 @@ public abstract class AutoCloseHintHUD extends TPanel {
         ClientGameManager.getMyTeam()
                 .ifPresent(d -> {
                     this.team.setForeground(ColorHelper.getARGB(d, 0xff));
-                    this.team.setBackground(ColorHelper.getARGB(d, 0x60));
                     this.team.setText(Component.literal(DirectionHelper.getName(d)));
                 });
         this.add(this.team);
-        this.team.setFontSize(21);
+        this.team.setFontSize(14);
         team.setHorizontalAlignment(HorizontalAlignment.LEFT);
     }
 
@@ -65,7 +64,7 @@ public abstract class AutoCloseHintHUD extends TPanel {
         var descSize = desc.getPreferredSize();
         desc.setBounds((width - descSize.x) / 2, phase.getYT() + phase.getHeight() + 6, descSize);
 
-        team.setBounds((int) (width * 0.8), (int) (height * 0.1), team.getPreferredSize());
+        team.setBounds((int) (width * 0.85), (int) (height * 0.06), team.getPreferredSize());
         super.layout();
     }
 

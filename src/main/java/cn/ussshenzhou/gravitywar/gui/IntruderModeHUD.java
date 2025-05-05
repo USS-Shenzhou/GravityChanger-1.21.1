@@ -19,7 +19,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * @author USS_Shenzhou
  */
 public class IntruderModeHUD extends TPanel {
-    private final TTimer timer = new TTimer() {
+    public final TTimer timer = new TTimer() {
         @Override
         public void tickT() {
             if (this.getTime() <= 60 * 1000) {
@@ -110,7 +110,7 @@ public class IntruderModeHUD extends TPanel {
     @Override
     public void layout() {
         int gap = 4;
-        int w = (int) ((width - gap * 9) / 6f);
+        int w = (int) (width / 6f);
         downTeamProgress.setBounds(width - w - 4, height / 2 - gap / 2 - gap * 2 - 30, w, 10);
         LayoutHelper.BBottomOfA(northTeamProgress, gap, downTeamProgress);
         LayoutHelper.BBottomOfA(eastTeamProgress, gap, northTeamProgress);
