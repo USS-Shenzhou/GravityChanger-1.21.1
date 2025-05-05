@@ -46,7 +46,7 @@ public class MainScreen extends TScreen {
     }
 
     private void checkNumber(TLabelButton button, Direction direction) {
-        if (ClientGameManager.getPlayerNumber()[direction.ordinal()] >= 17) {
+        if (ClientGameManager.getPlayerNumber()[direction.ordinal()] >= GameManager.maxPlayerPerTeam) {
             button.setOnPress(b -> {
             });
             button.setForeground(0xffa0a0a0);

@@ -1,5 +1,6 @@
 package cn.ussshenzhou.gravitywar.network.c2s;
 
+import cn.ussshenzhou.gravitywar.GravityWar;
 import cn.ussshenzhou.gravitywar.game.MatchPhase;
 import cn.ussshenzhou.gravitywar.game.ServerGameManager;
 import cn.ussshenzhou.t88.network.annotation.Decoder;
@@ -12,7 +13,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 /**
  * @author USS_Shenzhou
  */
-@NetPacket
+@NetPacket(modid = GravityWar.MODID)
 public class StartSPacket {
 
 

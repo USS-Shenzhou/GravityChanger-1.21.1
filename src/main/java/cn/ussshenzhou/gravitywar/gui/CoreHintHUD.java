@@ -18,7 +18,7 @@ public abstract class CoreHintHUD {
 
     public static class Final extends AutoCloseHintHUD {
         public Final() {
-            super("死斗", "决胜阶段", "XDM加油冲冲冲！");
+            super("死斗", "决胜阶段", "XDM加油冲冲冲!");
         }
     }
 }

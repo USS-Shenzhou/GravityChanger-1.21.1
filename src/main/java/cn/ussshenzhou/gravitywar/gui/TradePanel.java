@@ -1,7 +1,10 @@
 package cn.ussshenzhou.gravitywar.gui;
 
 import cn.ussshenzhou.gravitywar.GravityWar;
+import cn.ussshenzhou.gravitywar.game.ClientGameManager;
+import cn.ussshenzhou.gravitywar.game.GameManager;
 import cn.ussshenzhou.gravitywar.network.c2s.TradePacket;
+import cn.ussshenzhou.gravitywar.util.TradeHelper;
 import cn.ussshenzhou.t88.gui.advanced.THoverSensitiveImageButton;
 import cn.ussshenzhou.t88.gui.container.TVerticalScrollContainer;
 import cn.ussshenzhou.t88.gui.util.HorizontalAlignment;
@@ -11,11 +14,14 @@ import cn.ussshenzhou.t88.gui.widegt.TPanel;
 import cn.ussshenzhou.t88.network.NetworkHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.*;
+import org.checkerframework.checker.units.qual.A;
 
 import static cn.ussshenzhou.gravitywar.gui.TradeScreen.BUTTON_WIDTH;
+import static net.minecraft.world.item.Items.*;
 
 /**
  * @author USS_Shenzhou
@@ -29,190 +35,47 @@ public class TradePanel extends TVerticalScrollContainer {
 
     private void initFromProfession() {
         var player = Minecraft.getInstance().player;
-        var inventory = player.getInventory();
-        /*switch (profession) {
-            case NITWIT -> add(new TLabel(Component.literal("傻子！"))
-                    .setHorizontalAlignment(HorizontalAlignment.CENTER)
-                    .setBackground(0x80ffffff)
-            );
-            case ARMORER -> {
-                InventoryHelper.getAllAsStream(inventory)
-                        .filter(itemStack -> itemStack.is(Tags.Items.ARMORS))
-                        .forEach(itemStack -> {
-                            int value = switch ((ArmorMaterials) ((ArmorItem) itemStack.getItem()).getMaterial()) {
-                                case LEATHER -> 1;
-                                case IRON, GOLD -> 8;
-                                case DIAMOND -> 16;
-                                case NETHERITE -> 32;
-                                default -> 2;
-                            };
-                            var b = new SelfTradeOnceButton(itemStack.copy(), new ItemStack(Items.EMERALD, value));
-                            b.from.setShowTooltip(true);
-                            add(b);
-                        });
-                add(new SelfTradeButton(new ItemStack(Items.EMERALD, 12), new ItemStack(ModItems.IRON_ARMOR.get())));
-                add(new SelfTradeButton(new ItemStack(Items.EMERALD, 24), new ItemStack(ModItems.DIAMOND_ARMOR.get())));
-                add(new SelfTradeButton(new ItemStack(Items.EMERALD, 48), new ItemStack(ModItems.NETHERITE_ARMOR.get())));
-            }
-            case BUTCHER -> {
-                InventoryHelper.getAllAsStream(inventory)
-                        .map(ItemStack::getItem)
-                        .filter(Item::isEdible)
-                        .filter(item -> {
-                            var food = item.getFoodProperties(new ItemStack(item), null);
-                            if (food == null) {
-                                return false;
-                            }
-                            return food.isMeat();
-                        })
-                        .distinct()
-                        .forEach(item -> {
-                            var food = item.getFoodProperties(new ItemStack(item), null);
-                            if (food == null) {
-                                return;
-                            }
-                            Tuple<Integer, Integer> needAndValue = getNeedAndValue(food);
-                            var b = new SelfTradeButton(new ItemStack(item, needAndValue.getA()), new ItemStack(Items.EMERALD, needAndValue.getB()));
-                            add(b);
-                        });
-                add(new SelfTradeButton(new ItemStack(Items.EMERALD, 9), new ItemStack(Items.COOKED_BEEF, 2)));
-            }
-            case CLERIC -> {
-                InventoryHelper.getAllAsStream(inventory)
-                        .filter(itemStack -> itemStack.getItem() instanceof PotionItem)
-                        .forEach(item -> add(new SelfTradeOnceButton(item.copy(), new ItemStack(Items.EMERALD, 6))));
-                var b = new SelfTradeButton(new ItemStack(Items.EMERALD, 8), new ItemStack(Items.GOLDEN_CARROT, 1));
-                if (HXYAHelper.isUncle(player)) {
-                    b.from.setItem(new ItemStack(Items.EMERALD, 4));
-                    b.setTooltip(Tooltip.create(Component.literal("咬不动，大甩卖！\n§7只有你拥有此折扣。")));
-                }
-                add(b);
-                add(new SelfTradeButton(new ItemStack(Items.EMERALD, 8), new ItemStack(Items.GOLDEN_APPLE, 1)));
+        ClientGameManager.getMyTeam().ifPresent(team -> {
+            addTrade(COBBLESTONE, 16, switch (team) {
+                case DOWN -> DARK_OAK_LOG;
+                case UP -> ACACIA_LOG;
+                case NORTH -> CHERRY_LOG;
+                case SOUTH -> BAMBOO_BLOCK;
+                case WEST -> MANGROVE_LOG;
+                case EAST -> WARPED_STEM;
+            }, 32);
+            addTrade(switch (team) {
+                case DOWN -> DARK_OAK_LOG;
+                case UP -> ACACIA_LOG;
+                case NORTH -> CHERRY_LOG;
+                case SOUTH -> BAMBOO_BLOCK;
+                case WEST -> MANGROVE_LOG;
+                case EAST -> WARPED_STEM;
+            }, 32, COBBLESTONE, 16);
+        });
+        addTrade(COBBLESTONE, 16, COOKED_CHICKEN, 12);
+        addTrade(COBBLESTONE, 16, COOKED_BEEF, 8);
 
-                if (HXYAHelper.isKaMu(player)) {
-                    assertVoid();
-                    add(new SelfTradeButton(new ItemStack(Items.EMERALD, 6), GeneralForgeBusListener.LAVA_BOTTLE.copy())
-                            .setTooltip(Tooltip.create(Component.literal("您好，外卖！\n§7家乡特产。\n§7只有你能进行此交易。")))
-                    );
-                }
-            }
-            case FARMER -> {
-                InventoryHelper.getAllAsStream(inventory)
-                        .filter(itemStack -> itemStack.is(Tags.Items.CROPS))
-                        .map(ItemStack::getItem)
-                        .filter(Item::isEdible)
-                        .distinct()
-                        .forEach(item -> {
-                            var food = item.getFoodProperties(new ItemStack(item), null);
-                            if (food == null) {
-                                return;
-                            }
-                            Tuple<Integer, Integer> needAndValue = getNeedAndValue(food);
-                            var b = new SelfTradeButton(new ItemStack(item, needAndValue.getA()), new ItemStack(Items.EMERALD, needAndValue.getB()));
-                            if (HXYAHelper.isMelor(player) && item == Items.CARROT) {
-                                b.getButton().setOnPress(pButton -> {
-                                    NetworkHelper.sendToServer(new SelfTradePacket(Minecraft.getInstance().player.getUUID(), b.from.getItem(), b.to.getItem()));
-                                    NetworkHelper.sendToServer(new MelorTradeCarrotPacket());
-                                });
-                            }
-                            add(b);
-                        });
-                add(new SelfTradeButton(new ItemStack(Items.EMERALD, 1), new ItemStack(Items.WHEAT, 1)));
-                add(new SelfTradeButton(new ItemStack(Items.EMERALD, 1), new ItemStack(Items.BEETROOT, 1)));
-                add(new SelfTradeButton(new ItemStack(Items.EMERALD, 1), new ItemStack(Items.APPLE, 1)));
-                add(new SelfTradeButton(new ItemStack(Items.EMERALD, 1), new ItemStack(Items.MELON_SLICE, 1)));
-                add(new SelfTradeButton(new ItemStack(Items.EMERALD, 1), new ItemStack(Items.POTATO, 1)));
-                if (HXYAHelper.isUncle(player)) {
-                    assertVoid();
-                    add(new SelfTradeButton(new ItemStack(Items.EMERALD, 1), new ItemStack(Items.CARROT, 2))
-                            .setTooltip(Tooltip.create(Component.literal("兔子垄断胡萝卜很正常吧。\n§7只有你能进行此交易。")))
-                    );
-                }
-            }
-            case FLETCHER -> {
-                InventoryHelper.getAllAsStream(inventory)
-                        .filter(itemStack -> itemStack.getItem() instanceof BowItem)
-                        .forEach(itemStack -> {
-                            var b = new SelfTradeOnceButton(itemStack.copy(), new ItemStack(Items.EMERALD, 12));
-                            b.from.setShowTooltip(true);
-                            add(b);
-                        });
-                add(new SelfTradeButton(new ItemStack(Items.EMERALD, 16), new ItemStack(ModItems.BOW.get())));
-                add(new SelfTradeButton(new ItemStack(Items.EMERALD, 4), new ItemStack(Items.ARROW, 16)));
-                if (HXYAHelper.isHeiMao(player)) {
-                    assertVoid();
-                    add(new SelfTradeButton(new ItemStack(Items.EMERALD, 64), GeneralForgeBusListener.MAO_BOW.copy())
-                            .setTooltip(Tooltip.create(Component.literal("大眼睛神射手！\n§7只有你能进行此交易。")))
-                    );
-                }
-            }
-            case TOOL_SMITH -> {
-                InventoryHelper.getAllAsStream(inventory)
-                        .filter(itemStack -> itemStack.getItem() instanceof PickaxeItem || itemStack.getItem() instanceof ShovelItem)
-                        .forEach(itemStack -> {
-                            int value = switch ((Tiers) ((TieredItem) itemStack.getItem()).getTier()) {
-                                case STONE -> 1;
-                                case IRON, GOLD -> 8;
-                                case DIAMOND -> 16;
-                                case NETHERITE -> 32;
-                                default -> 0;
-                            };
-                            if (value == 0) {
-                                return;
-                            }
-                            var b = new SelfTradeOnceButton(itemStack.copy(), new ItemStack(Items.EMERALD, value));
-                            b.from.setShowTooltip(true);
-                            add(b);
-                        });
-                add(new SelfTradeButton(new ItemStack(Items.EMERALD, 12), new ItemStack(ModItems.IRON_TOOL.get())));
-                add(new SelfTradeButton(new ItemStack(Items.EMERALD, 24), new ItemStack(ModItems.DIAMOND_TOOL.get())));
-                add(new SelfTradeButton(new ItemStack(Items.EMERALD, 48), new ItemStack(ModItems.NETHERITE_TOOL.get())));
-                if (HXYAHelper.isHeiMao(player)) {
-                    assertVoid();
-                    add(new SelfTradeButton(new ItemStack(Items.EMERALD, 64), GeneralForgeBusListener.MAO_SHOVEL.copy())
-                            .setTooltip(Tooltip.create(Component.literal("钻石铲子！\n§7只有你能进行此交易。")))
-                    );
-                }
-            }
-            case WEAPON_SMITH -> {
-                InventoryHelper.getAllAsStream(inventory)
-                        .filter(itemStack -> itemStack.getItem() instanceof AxeItem || itemStack.getItem() instanceof SwordItem)
-                        .forEach(itemStack -> {
-                            int value = switch ((Tiers) ((TieredItem) itemStack.getItem()).getTier()) {
-                                case STONE -> 1;
-                                case IRON, GOLD -> 8;
-                                case DIAMOND -> 16;
-                                case NETHERITE -> 32;
-                                default -> 0;
-                            };
-                            if (value == 0) {
-                                return;
-                            }
-                            var b = new SelfTradeOnceButton(itemStack.copy(), new ItemStack(Items.EMERALD, value));
-                            b.from.setShowTooltip(true);
-                            add(b);
-                        });
-                add(new SelfTradeButton(new ItemStack(Items.EMERALD, 12), new ItemStack(ModItems.IRON_WEAPON.get())));
-                add(new SelfTradeButton(new ItemStack(Items.EMERALD, 24), new ItemStack(ModItems.DIAMOND_WEAPON.get())));
-                add(new SelfTradeButton(new ItemStack(Items.EMERALD, 48), new ItemStack(ModItems.NETHERITE_WEAPON.get())));
-                if (HXYAHelper.isCen(player)) {
-                    assertVoid();
-                    add(new SelfTradeButton(new ItemStack(Items.EMERALD, 64), GeneralForgeBusListener.CEN_AXE.copy())
-                            .setTooltip(Tooltip.create(Component.literal("钻石斧杀人魔！\n§7只有你能进行此交易。")))
-                    );
-                }
-                if (HXYAHelper.isMelor(player)) {
-                    assertVoid();
-                    add(new SelfTradeButton(new ItemStack(Items.EMERALD, 64), GeneralForgeBusListener.MELOR_SWORD.copy())
-                            .setTooltip(Tooltip.create(Component.literal("《方块杯空岛冠军》\n§7只有你能进行此交易。\n§8本来想给个茄子的但是懒得画。")))
-                    );
-                }
-            }
-        }*/
+        if (TradeHelper.isKaMu(Minecraft.getInstance().player)) {
+            assertVoid();
+            add(new SelfTradeButton(new ItemStack(COBBLESTONE, 8), TradeHelper.LAVA_BOTTLE.copy())
+                    .setTooltip(Tooltip.create(Component.literal("§8上古失落的彩蛋。\n§7家乡特产。\n§7只有你能进行此交易。")))
+            );
+        }
+        if (TradeHelper.isMelor(Minecraft.getInstance().player)) {
+            assertVoid();
+            add(new SelfTradeButton(new ItemStack(Items.COBBLESTONE, 128), TradeHelper.MELOR_SWORD.copy())
+                    .setTooltip(Tooltip.create(Component.literal("§8上古失落的彩蛋。\n§b《方块杯空岛冠军》\n§7只有你能进行此交易。\n§8本来想给个茄子的但是懒得画。")))
+            );
+        }
+    }
+
+    private void addTrade(Item from, int amount0, Item to, int amount1) {
+        add(new SelfTradeButton(new ItemStack(from, amount0), new ItemStack(to, amount1)));
     }
 
     private void assertVoid() {
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 5; i++) {
             add(new TPanel());
         }
     }

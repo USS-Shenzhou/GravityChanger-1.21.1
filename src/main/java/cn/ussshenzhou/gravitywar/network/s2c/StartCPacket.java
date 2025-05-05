@@ -1,5 +1,6 @@
 package cn.ussshenzhou.gravitywar.network.s2c;
 
+import cn.ussshenzhou.gravitywar.GravityWar;
 import cn.ussshenzhou.gravitywar.game.*;
 import cn.ussshenzhou.t88.config.ConfigHelper;
 import cn.ussshenzhou.t88.gui.HudManager;
@@ -20,7 +21,7 @@ import java.util.UUID;
 /**
  * @author USS_Shenzhou
  */
-@NetPacket
+@NetPacket(modid = GravityWar.MODID)
 public class StartCPacket {
     public Map<UUID, Direction> playerToTeam;
     public MatchPhase phase;

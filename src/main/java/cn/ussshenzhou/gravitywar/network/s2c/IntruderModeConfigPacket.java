@@ -1,7 +1,7 @@
 package cn.ussshenzhou.gravitywar.network.s2c;
 
-import cn.ussshenzhou.gravitywar.game.CoreModeConfig;
-import cn.ussshenzhou.gravitywar.game.IntruderModeConfig;
+import cn.ussshenzhou.gravitywar.GravityWar;
+import cn.ussshenzhou.gravitywar.game.GravityWarConfig;
 import cn.ussshenzhou.gravitywar.network.Util;
 import cn.ussshenzhou.t88.config.ConfigHelper;
 import cn.ussshenzhou.t88.network.annotation.ClientHandler;
@@ -20,33 +20,28 @@ import java.util.Map;
 /**
  * @author USS_Shenzhou
  */
-@NetPacket
+@NetPacket(modid = GravityWar.MODID)
 public class IntruderModeConfigPacket {
-    public Map<Direction, List<BlockPos>> spawnPos = new HashMap<>();
     public Map<Direction, List<BlockPos>> spots = new HashMap<>();
 
-    public IntruderModeConfigPacket(Map<Direction, List<BlockPos>> spawnPos, Map<Direction, List<BlockPos>> spots) {
-        this.spawnPos = spawnPos;
+    public IntruderModeConfigPacket(Map<Direction, List<BlockPos>> spots) {
         this.spots = spots;
     }
 
     @Decoder
     public IntruderModeConfigPacket(FriendlyByteBuf buf) {
-        this.spawnPos = buf.readMap(Util.MAP_CODEC_0, Util.MAP_CODEC_1);
-        this.spots = buf.readMap(Util.MAP_CODEC_0, Util.MAP_CODEC_1);
+        this.spots = buf.readMap(Util.CODEC_DIRECTION, Util.CODEC_BLOCK_POS_LIST);
     }
 
     @Encoder
     public void encode(FriendlyByteBuf buf) {
-        buf.writeMap(spawnPos, Util.MAP_CODEC_0, Util.MAP_CODEC_1);
-        buf.writeMap(spots, Util.MAP_CODEC_0, Util.MAP_CODEC_1);
+        buf.writeMap(spots, Util.CODEC_DIRECTION, Util.CODEC_BLOCK_POS_LIST);
     }
 
     @ClientHandler
     public void handler(IPayloadContext context) {
-        ConfigHelper.getConfigWrite(IntruderModeConfig.class, coreModeConfig -> {
-            coreModeConfig.spawnPos = spawnPos;
-            coreModeConfig.spots = spots;
+        ConfigHelper.getConfigWrite(GravityWarConfig.class, c -> {
+            c.spotPos = spots;
         });
     }
 }

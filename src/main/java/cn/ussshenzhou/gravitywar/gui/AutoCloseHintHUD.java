@@ -2,23 +2,26 @@ package cn.ussshenzhou.gravitywar.gui;
 
 import cn.ussshenzhou.gravitywar.game.ClientGameManager;
 import cn.ussshenzhou.gravitywar.util.ColorHelper;
+import cn.ussshenzhou.gravitywar.util.DirectionHelper;
 import cn.ussshenzhou.t88.gui.HudManager;
 import cn.ussshenzhou.t88.gui.util.Border;
 import cn.ussshenzhou.t88.gui.util.HorizontalAlignment;
 import cn.ussshenzhou.t88.gui.util.LayoutHelper;
 import cn.ussshenzhou.t88.gui.widegt.TLabel;
 import cn.ussshenzhou.t88.gui.widegt.TPanel;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 
 /**
  * @author USS_Shenzhou
  */
 public abstract class AutoCloseHintHUD extends TPanel {
-    private static final int LIFE = 10 * 20;
-    private int age = 0;
-    private final TLabel mode = new TLabel();
-    private final TLabel phase = new TLabel();
-    private final TLabel desc = new TLabel();
+    protected static final int LIFE = 10 * 20;
+    protected int age = 0;
+    protected final TLabel mode = new TLabel();
+    protected final TLabel phase = new TLabel();
+    protected final TLabel desc = new TLabel();
+    protected final TLabel team = new TLabel();
 
     public AutoCloseHintHUD(String mode, String phase, String desc) {
         this.mode.setText(Component.literal(mode));
@@ -37,7 +40,14 @@ public abstract class AutoCloseHintHUD extends TPanel {
         this.desc.setAutoScroll(false);
 
         ClientGameManager.getMyTeam()
-                .ifPresent(d -> this.mode.setForeground(ColorHelper.getARGB(d, 0xff)));
+                .ifPresent(d -> {
+                    this.team.setForeground(ColorHelper.getARGB(d, 0xff));
+                    this.team.setBackground(ColorHelper.getARGB(d, 0x60));
+                    this.team.setText(Component.literal(DirectionHelper.getName(d)));
+                });
+        this.add(this.team);
+        this.team.setFontSize(21);
+        team.setHorizontalAlignment(HorizontalAlignment.LEFT);
     }
 
     @Override
@@ -54,6 +64,8 @@ public abstract class AutoCloseHintHUD extends TPanel {
         mode.setBounds((width - modeSize.x) / 2, phase.getYT() - modeSize.y - 6, modeSize);
         var descSize = desc.getPreferredSize();
         desc.setBounds((width - descSize.x) / 2, phase.getYT() + phase.getHeight() + 6, descSize);
+
+        team.setBounds((int) (width * 0.8), (int) (height * 0.1), team.getPreferredSize());
         super.layout();
     }
 

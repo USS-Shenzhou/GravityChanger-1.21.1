@@ -1,8 +1,7 @@
 package cn.ussshenzhou.gravitywar;
 
-import cn.ussshenzhou.gravitywar.game.CoreModeConfig;
 import cn.ussshenzhou.gravitywar.game.GravityWarConfig;
-import cn.ussshenzhou.gravitywar.game.IntruderModeConfig;
+import cn.ussshenzhou.gravitywar.util.ModItems;
 import cn.ussshenzhou.t88.config.ConfigHelper;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -20,10 +19,9 @@ public class GravityWar {
 
     public GravityWar(IEventBus modEventBus, ModContainer modContainer) {
         ConfigHelper.loadConfig(new GravityWarConfig());
-        ConfigHelper.loadConfig(new CoreModeConfig());
-        ConfigHelper.loadConfig(new IntruderModeConfig());
         if (ModList.get().isLoaded("sodium")) {
             throw new ModLoadingException(ModLoadingIssue.error("不支持Sodium"));
         }
+        ModItems.ITEMS.register(modEventBus);
     }
 }

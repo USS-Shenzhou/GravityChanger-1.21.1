@@ -1,5 +1,6 @@
 package cn.ussshenzhou.gravitywar.network.c2s;
 
+import cn.ussshenzhou.gravitywar.GravityWar;
 import cn.ussshenzhou.t88.network.annotation.Decoder;
 import cn.ussshenzhou.t88.network.annotation.Encoder;
 import cn.ussshenzhou.t88.network.annotation.NetPacket;
@@ -24,7 +25,7 @@ import java.util.UUID;
 /**
  * @author USS_Shenzhou
  */
-@NetPacket
+@NetPacket(modid = GravityWar.MODID)
 public class TradePacket {
     public final UUID uuid;
     public final ItemStack from;

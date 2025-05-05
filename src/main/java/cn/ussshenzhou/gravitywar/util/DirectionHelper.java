@@ -61,6 +61,10 @@ public class DirectionHelper {
 
     private static final double INV_SQRT2 = 1.0 / Math.sqrt(2.0);
 
+    public static double distanceToBoundary(Vec3 vec3){
+        return distanceToBoundary(vec3.x, vec3.y, vec3.z);
+    }
+
     public static double distanceToBoundary(double x, double y, double z) {
         if (x == 0 && y == 0 && z == 0) {
             return 0;
@@ -154,5 +158,16 @@ public class DirectionHelper {
                 v.y() + PIVOT.y,
                 v.z() + PIVOT.z
         );
+    }
+
+    public static String getName(Direction dir) {
+        return switch (dir) {
+            case DOWN -> "黑队";
+            case UP -> "橙队";
+            case NORTH -> "黄队";
+            case SOUTH -> "粉队";
+            case WEST -> "红队";
+            case EAST -> "蓝队";
+        };
     }
 }

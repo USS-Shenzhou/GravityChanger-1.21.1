@@ -1,5 +1,6 @@
 package cn.ussshenzhou.gravitywar.game;
 
+import cn.ussshenzhou.t88.config.ConfigHelper;
 import net.minecraft.core.Direction;
 
 import java.util.HashMap;
@@ -33,6 +34,10 @@ public abstract class GameManager {
         PLAYER_TO_TEAM.clear();
         phase = MatchPhase.CHOOSE;
         mode = MatchMode.CORE;
+    }
+
+    public static GravityWarConfig getConfig() {
+        return ConfigHelper.getConfigRead(GravityWarConfig.class);
     }
 
 }

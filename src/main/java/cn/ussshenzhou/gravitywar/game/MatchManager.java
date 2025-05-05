@@ -1,31 +1,65 @@
 package cn.ussshenzhou.gravitywar.game;
 
-import cn.ussshenzhou.gravitywar.network.s2c.CoreModeConfigPacket;
+import cn.ussshenzhou.gravitywar.network.s2c.ChangePhasePacket;
 import cn.ussshenzhou.gravitywar.network.s2c.IntruderModeConfigPacket;
 import cn.ussshenzhou.gravitywar.util.DirectionHelper;
 import cn.ussshenzhou.gravitywar.util.GravityChangerAPIProxy;
 import cn.ussshenzhou.t88.config.ConfigHelper;
 import cn.ussshenzhou.t88.network.NetworkHelper;
-import cn.ussshenzhou.t88.task.TaskHelper;
-import net.minecraft.core.Direction;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.Mth;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.level.GameType;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
 import static cn.ussshenzhou.gravitywar.game.GameManager.*;
 import static cn.ussshenzhou.gravitywar.game.ServerGameManager.*;
-import static cn.ussshenzhou.gravitywar.game.ClientGameManager.*;
 
 /**
  * @author USS_Shenzhou
  */
 public abstract class MatchManager {
 
-    public abstract void start();
-
-    public void serverTick() {
-        autoGravityDirection();
+    public void startServer() {
+        phasePrep();
+        CompletableFuture
+                .runAsync(
+                        this::phaseBattle,
+                        CompletableFuture.delayedExecutor(getConfig().preparePhase, TimeUnit.SECONDS)
+                );
+        CompletableFuture
+                .runAsync(
+                        this::phaseFinal,
+                        CompletableFuture.delayedExecutor(getConfig().battlePhase, TimeUnit.SECONDS)
+                );
     }
 
-    protected void autoGravityDirection() {
+    public void phasePrep() {
+        var pkt = new ChangePhasePacket(MatchPhase.PREP);
+        forEachS(p -> {
+            NetworkHelper.sendToPlayer(p, pkt);
+        });
+    }
+
+    public void phaseBattle() {
+        var pkt = new ChangePhasePacket(MatchPhase.BATTLE);
+        forEachS(p -> NetworkHelper.sendToPlayer(p, pkt));
+    }
+
+    public void phaseFinal() {
+        var pkt = new ChangePhasePacket(MatchPhase.FINAL);
+        forEachS(p -> NetworkHelper.sendToPlayer(p, pkt));
+    }
+
+    public void serverTick() {
+        //autoGravityDirection();
+    }
+
+    /*protected void autoGravityDirection() {
         getLevel().getAllEntities().forEach(entity -> {
             if (entity instanceof Player player) {
                 if (!PLAYER_TO_TEAM.containsKey(player.getUUID())) {
@@ -46,7 +80,7 @@ public abstract class MatchManager {
                             }
                         }, () -> {
                             var currentG = GravityChangerAPIProxy.getGravityDirection(entity);
-                            var correctG = /*phase == MatchPhase.CHOOSE ? Direction.DOWN :*/ DirectionHelper.getPyramidRegion(entity.getEyePosition());
+                            var correctG = phase == MatchPhase.CHOOSE ? Direction.DOWN : DirectionHelper.getPyramidRegion(entity.getEyePosition());
                             if (currentG != correctG) {
                                 GravityChangerAPIProxy.setBaseGravityDirection(entity, correctG);
                                 entity.addTag("gw_rot_cd_" + 20);
@@ -66,7 +100,7 @@ public abstract class MatchManager {
                 }
             }
         });
-    }
+    }*/
 
     public abstract void clientTick();
 
@@ -74,14 +108,58 @@ public abstract class MatchManager {
         return switch (mode) {
             case CORE -> new Core();
             case INTRUDER -> new Intruder();
+            case SIEGE -> new Siege();
         };
     }
 
     public static class Core extends MatchManager {
 
         @Override
-        public void start() {
-            NetworkHelper.sendToAllPlayers(new CoreModeConfigPacket(ConfigHelper.getConfigRead(CoreModeConfig.class).cores));
+        public void startServer() {
+            super.startServer();
+            PLAYER_TO_TEAM.forEach((uuid, direction) -> {
+                getPlayerS(uuid).ifPresent(p -> {
+                    var posList = getConfig().corePos.get(direction);
+                    var pos = posList.get(ThreadLocalRandom.current().nextInt(posList.size()));
+                    teleportWithDiffuse(p, pos);
+                    GravityChangerAPIProxy.setBaseGravityDirection(p, PLAYER_TO_TEAM.get(p.getUUID()));
+                    p.load(new CompoundTag());
+                    p.setGameMode(GameType.SURVIVAL);
+                });
+            });
+        }
+
+        @Override
+        public void serverTick() {
+            super.serverTick();
+            //borderCheck
+            if (phase == MatchPhase.PREP) {
+                forEachS(p -> {
+                    var d = DirectionHelper.distanceToBoundary(p.getEyePosition());
+                    if (d <= 0.5) {
+                        var posList = getConfig().corePos.get(PLAYER_TO_TEAM.get(p.getUUID()));
+                        teleportWithDiffuse(p, posList.get(ThreadLocalRandom.current().nextInt(posList.size())));
+                        return;
+                    }
+                    d = Mth.clamp(d, 0, 4.5);
+                    d = (4.5 - d) * 7;
+                    p.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 20, (int) d, true, false));
+                });
+            }
+        }
+
+        @Override
+        public void clientTick() {
+
+        }
+    }
+
+    //TODO
+    public static class Siege extends Core {
+
+        @Override
+        public void startServer() {
+            super.startServer();
         }
 
         @Override
@@ -91,21 +169,37 @@ public abstract class MatchManager {
 
         @Override
         public void clientTick() {
-
+            super.clientTick();
         }
     }
 
+    //TODO
     public static class Intruder extends MatchManager {
 
         @Override
-        public void start() {
-            var cfg = ConfigHelper.getConfigRead(IntruderModeConfig.class);
-            NetworkHelper.sendToAllPlayers(new IntruderModeConfigPacket(cfg.spawnPos, cfg.spots));
+        public void startServer() {
+            super.startServer();
+            var cfg = ConfigHelper.getConfigRead(GravityWarConfig.class);
+            NetworkHelper.sendToAllPlayers(new IntruderModeConfigPacket(cfg.spotPos));
         }
 
         @Override
         public void serverTick() {
             super.serverTick();
+            //borderCheck
+            if (phase == MatchPhase.PREP) {
+                forEachS(p -> {
+                    var d = DirectionHelper.distanceToBoundary(p.getEyePosition());
+                    if (d <= 0.5) {
+                        var posList = getConfig().spawnPos.get(PLAYER_TO_TEAM.get(p.getUUID()));
+                        teleportWithDiffuse(p, posList.get(ThreadLocalRandom.current().nextInt(posList.size())));
+                        return;
+                    }
+                    d = Mth.clamp(d, 0, 4.5);
+                    d = (4.5 - d) * 7;
+                    p.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 20, (int) d, true, false));
+                });
+            }
         }
 
         @Override

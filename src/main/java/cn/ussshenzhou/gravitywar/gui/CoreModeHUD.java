@@ -2,7 +2,10 @@ package cn.ussshenzhou.gravitywar.gui;
 
 import cn.ussshenzhou.gravitywar.GravityWar;
 import cn.ussshenzhou.gravitywar.game.ClientGameManager;
+import cn.ussshenzhou.gravitywar.game.GameManager;
+import cn.ussshenzhou.gravitywar.game.GravityWarConfig;
 import cn.ussshenzhou.gravitywar.util.ColorHelper;
+import cn.ussshenzhou.t88.config.ConfigHelper;
 import cn.ussshenzhou.t88.gui.util.Border;
 import cn.ussshenzhou.t88.gui.util.HorizontalAlignment;
 import cn.ussshenzhou.t88.gui.util.LayoutHelper;
@@ -14,8 +17,11 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.LivingEntity;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+
+import java.util.Optional;
 
 /**
  * @author USS_Shenzhou
@@ -58,6 +64,8 @@ public class CoreModeHUD extends TPanel {
     public CoreModeHUD() {
         this.add(timer);
         timer.setCountdown(true);
+        var cfg = ConfigHelper.getConfigRead(GravityWarConfig.class);
+        timer.setCountDownSec(cfg.battlePhase + cfg.finalPhase + cfg.preparePhase);
         timer.start();
         timer.setShowFullFormat(true);
         timer.setFontSize(14);
@@ -72,16 +80,36 @@ public class CoreModeHUD extends TPanel {
         this.add(westTeamStatus);
 
         ClientGameManager.getMyTeam().ifPresent(d -> {
-            var statusWithBackground = switch (d) {
-                case UP -> upTeamStatus;
-                case NORTH -> northTeamStatus;
-                case SOUTH -> southTeamStatus;
-                case EAST -> eastTeamStatus;
-                case WEST -> westTeamStatus;
-                case DOWN -> downTeamStatus;
-            };
+            var statusWithBackground = getRing(d);
             statusWithBackground.setBorder(new Border(ColorHelper.getARGB(d, 0x80), 4));
         });
+    }
+
+    private ColorfulImage getRing(Direction d) {
+        return switch (d) {
+            case UP -> upTeamStatus;
+            case NORTH -> northTeamStatus;
+            case SOUTH -> southTeamStatus;
+            case EAST -> eastTeamStatus;
+            case WEST -> westTeamStatus;
+            case DOWN -> downTeamStatus;
+        };
+    }
+
+    @Override
+    public void tickT() {
+        GameManager.TEAM_TO_PLAYER.forEach((direction, uuids) -> {
+            var n = uuids.stream()
+                    .map(ClientGameManager::getPlayerC)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .filter(LivingEntity::isAlive)
+                    .count();
+            getRing(direction).playerNumber.setText(Component.literal(String.valueOf(n)));
+        });
+        //TODO
+
+        super.tickT();
     }
 
     @Override

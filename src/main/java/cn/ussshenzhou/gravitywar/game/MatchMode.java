@@ -6,5 +6,6 @@ package cn.ussshenzhou.gravitywar.game;
 
 public enum MatchMode {
     CORE,
-    INTRUDER
+    INTRUDER,
+    SIEGE
 }

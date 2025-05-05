@@ -7,6 +7,7 @@ import cn.ussshenzhou.t88.gui.HudManager;
 import cn.ussshenzhou.t88.gui.widegt.TComponent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Direction;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -29,9 +30,25 @@ public class ClientGameManager extends GameManager {
 
     public static void setPlayerNumber(int[] playerNumber) {
         ClientGameManager.playerNumber = playerNumber;
+        GameManager.maxPlayerPerTeam = (int) getMC().level.players().stream()
+                .filter(p -> !p.hasPermissions(2))
+                .count() / 6 + 1;
         if (getMC().screen instanceof MainScreen mainScreen) {
             mainScreen.update();
         }
+    }
+
+    public static Optional<UUID> getLeaderOf(UUID uuid) {
+        if (!PLAYER_TO_TEAM.containsKey(uuid)) {
+            return Optional.empty();
+        }
+        return TEAM_TO_PLAYER.get(PLAYER_TO_TEAM.get(uuid)).stream()
+                .map(ClientGameManager::getPlayerC)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .filter(p->p.hasPermissions(2))
+                .findFirst()
+                .map(Entity::getUUID);
     }
 
     public static int[] getPlayerNumber() {
@@ -39,7 +56,9 @@ public class ClientGameManager extends GameManager {
     }
 
     public static Optional<Direction> getMyTeam() {
-        return getMC().player == null ? Optional.empty() : Optional.ofNullable(PLAYER_TO_TEAM.get(getMC().player.getUUID()));
+        //TODO
+        return Optional.of(Direction.NORTH);
+        //return getMC().player == null ? Optional.empty() : Optional.ofNullable(PLAYER_TO_TEAM.get(getMC().player.getUUID()));
     }
 
     public static Optional<Player> getPlayerC(UUID uuid) {
@@ -52,8 +71,7 @@ public class ClientGameManager extends GameManager {
 
     public static void start() {
         manager = MatchManager.create(mode);
-        manager.start();
-        HudManager.add(mode == MatchMode.CORE ? new CoreModeHUD() : new IntruderModeHUD());
+        HudManager.add(mode == MatchMode.INTRUDER ? new IntruderModeHUD() : new CoreModeHUD());
     }
 
     public static void end() {
