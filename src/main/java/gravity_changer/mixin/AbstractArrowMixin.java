@@ -3,6 +3,7 @@ package gravity_changer.mixin;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import gravity_changer.api.GravityChangerAPI;
+import gravity_changer.util.DirectionHelper;
 import gravity_changer.util.RotationUtil;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
@@ -34,9 +35,9 @@ public abstract class AbstractArrowMixin extends Entity {
     )
     public Vec3 tick(Vec3 modify) {
         modify = new Vec3(modify.x, modify.y + 0.05, modify.z);
-        modify = RotationUtil.vecWorldToPlayer(modify, GravityChangerAPI.getGravityDirection(this));
+        modify = RotationUtil.vecWorldToPlayer(modify, DirectionHelper.getPyramidRegion(this.position()));
         modify = new Vec3(modify.x, modify.y - 0.05, modify.z);
-        modify = RotationUtil.vecPlayerToWorld(modify, GravityChangerAPI.getGravityDirection(this));
+        modify = RotationUtil.vecPlayerToWorld(modify, DirectionHelper.getPyramidRegion(this.position()));
         return modify;
     }
     
