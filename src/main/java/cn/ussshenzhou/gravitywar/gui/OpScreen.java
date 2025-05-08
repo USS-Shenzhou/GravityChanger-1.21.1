@@ -4,6 +4,7 @@ import cn.ussshenzhou.gravitywar.game.ClientGameManager;
 import cn.ussshenzhou.gravitywar.game.GameManager;
 import cn.ussshenzhou.gravitywar.game.MatchMode;
 import cn.ussshenzhou.gravitywar.network.ForceChooseScreenPacket;
+import cn.ussshenzhou.gravitywar.network.ResetPacket;
 import cn.ussshenzhou.gravitywar.network.c2s.KickNeutralPlayersPacket;
 import cn.ussshenzhou.gravitywar.network.c2s.SetModePacket;
 import cn.ussshenzhou.gravitywar.network.c2s.StartSPacket;
@@ -39,7 +40,7 @@ public class OpScreen extends TScreen {
         NetworkHelper.sendToServer(new StartSPacket());
     });
     private final TButton stop = new TButton(Component.literal("强制结束对局"), button -> {
-
+        NetworkHelper.sendToServer(new ResetPacket());
     });
 
     private final TButton notify = new TButton(Component.literal("强制弹出选队界面"), button -> {

@@ -2,16 +2,19 @@ package cn.ussshenzhou.gravitywar.network.s2c;
 
 import cn.ussshenzhou.gravitywar.GravityWar;
 import cn.ussshenzhou.gravitywar.game.ClientGameManager;
+import cn.ussshenzhou.gravitywar.game.GameManager;
 import cn.ussshenzhou.gravitywar.game.MatchPhase;
 import cn.ussshenzhou.gravitywar.gui.AutoCloseHintHUD;
 import cn.ussshenzhou.gravitywar.gui.CoreHintHUD;
 import cn.ussshenzhou.gravitywar.gui.IntruderHintHUD;
 import cn.ussshenzhou.gravitywar.gui.SiegeHintHUD;
 import cn.ussshenzhou.t88.gui.HudManager;
+import cn.ussshenzhou.t88.gui.widegt.TComponent;
 import cn.ussshenzhou.t88.network.annotation.ClientHandler;
 import cn.ussshenzhou.t88.network.annotation.Decoder;
 import cn.ussshenzhou.t88.network.annotation.Encoder;
 import cn.ussshenzhou.t88.network.annotation.NetPacket;
+import cn.ussshenzhou.t88.task.TaskHelper;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -40,7 +43,7 @@ public class ChangePhasePacket {
 
     @ClientHandler
     public void handlerC(IPayloadContext context) {
-        AutoCloseHintHUD toAdd = switch (ClientGameManager.mode) {
+        AutoCloseHintHUD toAdd = switch (GameManager.mode) {
             case SIEGE -> switch (phase) {
                 case CHOOSE -> null;
                 case PREP -> new SiegeHintHUD.Prep();
@@ -60,7 +63,10 @@ public class ChangePhasePacket {
                 case FINAL -> new IntruderHintHUD.Final();
             };
         };
-        HudManager.add(toAdd);
+        if (toAdd != null) {
+            HudManager.add(toAdd);
+        }
+        GameManager.phase = phase;
 
         var player = context.player();
         player.level()
@@ -69,8 +75,7 @@ public class ChangePhasePacket {
                         player.getY(),
                         player.getZ(),
                         switch (phase) {
-                            case CHOOSE -> SoundEvents.UI_TOAST_CHALLENGE_COMPLETE;
-                            case PREP -> SoundEvents.EXPERIENCE_ORB_PICKUP;
+                            case CHOOSE,PREP -> SoundEvents.EXPERIENCE_ORB_PICKUP;
                             case BATTLE -> SoundEvents.GOAT_HORN_SOUND_VARIANTS.get(1).value();
                             case FINAL -> SoundEvents.ENDER_DRAGON_GROWL;
                         },

@@ -1,20 +1,33 @@
 package cn.ussshenzhou.gravitywar.game;
 
+import cn.ussshenzhou.gravitywar.entity.CoreEntity;
+import cn.ussshenzhou.gravitywar.entity.ModEntities;
 import cn.ussshenzhou.gravitywar.network.s2c.ChangePhasePacket;
 import cn.ussshenzhou.gravitywar.network.s2c.IntruderModeConfigPacket;
+import cn.ussshenzhou.gravitywar.network.s2c.TeamFailPacket;
 import cn.ussshenzhou.gravitywar.util.DirectionHelper;
 import cn.ussshenzhou.gravitywar.util.GravityChangerAPIProxy;
 import cn.ussshenzhou.t88.config.ConfigHelper;
 import cn.ussshenzhou.t88.network.NetworkHelper;
+import cn.ussshenzhou.t88.task.TaskHelper;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.GameType;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.StreamSupport;
 
 import static cn.ussshenzhou.gravitywar.game.GameManager.*;
 import static cn.ussshenzhou.gravitywar.game.ServerGameManager.*;
@@ -23,6 +36,7 @@ import static cn.ussshenzhou.gravitywar.game.ServerGameManager.*;
  * @author USS_Shenzhou
  */
 public abstract class MatchManager {
+    private long startMs = 0;
 
     public void startServer() {
         phasePrep();
@@ -34,7 +48,7 @@ public abstract class MatchManager {
         CompletableFuture
                 .runAsync(
                         this::phaseFinal,
-                        CompletableFuture.delayedExecutor(getConfig().battlePhase, TimeUnit.SECONDS)
+                        CompletableFuture.delayedExecutor(getConfig().preparePhase + getConfig().battlePhase, TimeUnit.SECONDS)
                 );
     }
 
@@ -46,11 +60,19 @@ public abstract class MatchManager {
     }
 
     public void phaseBattle() {
+        if (phase != MatchPhase.PREP) {
+            return;
+        }
+        phase = MatchPhase.BATTLE;
         var pkt = new ChangePhasePacket(MatchPhase.BATTLE);
         forEachS(p -> NetworkHelper.sendToPlayer(p, pkt));
     }
 
     public void phaseFinal() {
+        if (phase != MatchPhase.BATTLE) {
+            return;
+        }
+        phase = MatchPhase.FINAL;
         var pkt = new ChangePhasePacket(MatchPhase.FINAL);
         forEachS(p -> NetworkHelper.sendToPlayer(p, pkt));
     }
@@ -122,9 +144,13 @@ public abstract class MatchManager {
                     var posList = getConfig().corePos.get(direction);
                     var pos = posList.get(ThreadLocalRandom.current().nextInt(posList.size()));
                     teleportWithDiffuse(p, pos);
-                    GravityChangerAPIProxy.setBaseGravityDirection(p, PLAYER_TO_TEAM.get(p.getUUID()));
-                    p.load(new CompoundTag());
-                    p.setGameMode(GameType.SURVIVAL);
+                });
+            });
+            getConfig().corePos.forEach((direction, blockPos) -> {
+                blockPos.forEach(p -> {
+                    var core = ModEntities.CORE_ENTITY_TYPE.get().create(ServerGameManager.getLevel());
+                    core.setPos(p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5);
+                    ServerGameManager.getLevel().addFreshEntity(core);
                 });
             });
         }
@@ -145,6 +171,39 @@ public abstract class MatchManager {
                     d = (4.5 - d) * 7;
                     p.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 20, (int) d, true, false));
                 });
+            }
+            var cfg = getConfig();
+            //victory check
+            if (System.currentTimeMillis() - ServerGameManager.startMs >= (cfg.preparePhase + cfg.battlePhase + cfg.finalPhase) * 1000L) {
+                ServerGameManager.end();
+                return;
+            }
+            int[] coreNumbers = new int[6];
+            StreamSupport.stream(getLevel().getAllEntities().spliterator(), false)
+                    .filter(entity -> entity instanceof CoreEntity)
+                    .forEach(entity -> {
+                        coreNumbers[DirectionHelper.getPyramidRegion(entity.position()).ordinal()]++;
+                    });
+            List<Direction> failed = new ArrayList<>();
+            for (var team : teamsOnGround) {
+                var playerNumber = TEAM_TO_PLAYER.get(team).parallelStream()
+                        .map(ServerGameManager::getPlayerS)
+                        .filter(Optional::isPresent)
+                        .map(Optional::get)
+                        .filter(LivingEntity::isAlive)
+                        .count();
+                if (playerNumber == 0 && coreNumbers[team.ordinal()] == 0) {
+                    failed.add(team);
+                }
+            }
+            if (!failed.isEmpty()) {
+                StringBuilder message = new StringBuilder();
+                failed.forEach(o -> {
+                    teamsOnGround.remove(o);
+                    message.append(DirectionHelper.getName(o)).append(' ');
+                });
+                message.append("失败");
+                NetworkHelper.sendToAllPlayers(new TeamFailPacket(message.toString()));
             }
         }
 

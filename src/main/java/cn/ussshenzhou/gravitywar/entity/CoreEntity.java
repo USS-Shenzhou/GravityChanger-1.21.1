@@ -9,6 +9,8 @@ import cn.ussshenzhou.madparticle.particle.enums.ParticleRenderTypes;
 import cn.ussshenzhou.madparticle.particle.enums.SpriteFrom;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -53,7 +55,7 @@ public class CoreEntity extends Mob {
                     InheritableBoolean.FALSE, 0, 0, ParticleRenderTypes.INSTANCED,
                     color.x, color.y, color.z,
                     1, 1, ChangeMode.LINEAR,
-                    2f, 2f, ChangeMode.LINEAR,
+                    1.75f, 1.75f, ChangeMode.LINEAR,
                     false, null,
                     0.01f,
                     0, 0, 0, 0,
@@ -76,6 +78,9 @@ public class CoreEntity extends Mob {
                     false,
                     Level.ExplosionInteraction.BLOCK
             );
+        }
+        if (this.level().isClientSide) {
+            level().playLocalSound(this, SoundEvents.BEACON_DEACTIVATE, SoundSource.BLOCKS, 0.8f, 1.3f);
         }
         super.remove(reason);
     }

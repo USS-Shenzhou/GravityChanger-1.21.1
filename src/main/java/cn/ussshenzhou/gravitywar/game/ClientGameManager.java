@@ -3,6 +3,7 @@ package cn.ussshenzhou.gravitywar.game;
 import cn.ussshenzhou.gravitywar.gui.CoreModeHUD;
 import cn.ussshenzhou.gravitywar.gui.IntruderModeHUD;
 import cn.ussshenzhou.gravitywar.gui.MainScreen;
+import cn.ussshenzhou.gravitywar.util.TradeHelper;
 import cn.ussshenzhou.t88.gui.HudManager;
 import cn.ussshenzhou.t88.gui.widegt.TComponent;
 import net.minecraft.client.Minecraft;
@@ -16,6 +17,7 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * @author USS_Shenzhou
@@ -42,12 +44,16 @@ public class ClientGameManager extends GameManager {
         if (!PLAYER_TO_TEAM.containsKey(uuid)) {
             return Optional.empty();
         }
-        return TEAM_TO_PLAYER.get(PLAYER_TO_TEAM.get(uuid)).stream()
+        var set = TEAM_TO_PLAYER.get(PLAYER_TO_TEAM.get(uuid)).stream()
                 .map(ClientGameManager::getPlayerC)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .filter(p->p.hasPermissions(2))
+                .filter(p -> p.hasPermissions(2))
+                .collect(Collectors.toSet());
+        return set.stream()
+                .filter(TradeHelper::isKaMu)
                 .findFirst()
+                .or(() -> set.stream().findAny())
                 .map(Entity::getUUID);
     }
 
@@ -75,6 +81,7 @@ public class ClientGameManager extends GameManager {
     }
 
     public static void end() {
+        clear();
         HudManager.removeInstanceOf(TComponent.class);
         manager = null;
     }

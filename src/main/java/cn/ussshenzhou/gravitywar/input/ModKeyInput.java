@@ -1,5 +1,7 @@
 package cn.ussshenzhou.gravitywar.input;
 
+import cn.ussshenzhou.gravitywar.game.GameManager;
+import cn.ussshenzhou.gravitywar.game.MatchPhase;
 import cn.ussshenzhou.gravitywar.gui.*;
 import cn.ussshenzhou.t88.gui.HudManager;
 import com.mojang.blaze3d.platform.InputConstants;
@@ -33,11 +35,10 @@ public class ModKeyInput {
         if (minecraft.player == null) {
             return;
         }
-        if (PLAY_SCREEN.consumeClick()) {
+        if (PLAY_SCREEN.consumeClick() && GameManager.phase == MatchPhase.CHOOSE) {
             minecraft.setScreen(new MainScreen());
         } else if (OP_SCREEN.consumeClick() && minecraft.player != null && minecraft.player.hasPermissions(4)) {
             minecraft.setScreen(new OpScreen());
         }
-        HudManager.addIfSameClassNotExist(new CoreModeHUD());
     }
 }

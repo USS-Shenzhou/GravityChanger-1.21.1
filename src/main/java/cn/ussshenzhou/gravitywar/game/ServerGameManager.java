@@ -1,6 +1,9 @@
 package cn.ussshenzhou.gravitywar.game;
 
+import cn.ussshenzhou.gravitywar.entity.CoreEntity;
 import cn.ussshenzhou.gravitywar.network.s2c.*;
+import cn.ussshenzhou.gravitywar.util.GravityChangerAPIProxy;
+import cn.ussshenzhou.gravitywar.util.TradeHelper;
 import cn.ussshenzhou.t88.config.ConfigHelper;
 import cn.ussshenzhou.t88.network.NetworkHelper;
 import cn.ussshenzhou.t88.task.TaskHelper;
@@ -14,10 +17,13 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.portal.DimensionTransition;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerRespawnPositionEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
@@ -32,7 +38,9 @@ import java.util.stream.Collectors;
 @EventBusSubscriber(bus = EventBusSubscriber.Bus.GAME)
 public class ServerGameManager extends GameManager {
 
-    private static long startMs = 0;
+    protected static long startMs = 0;
+    protected static Set<Direction> teamsOnGround = new HashSet<>();
+    public static final HashMap<UUID, Integer> PLAYER_DEATH = new HashMap<>();
 
     public static MinecraftServer getServer() {
         return ServerLifecycleHooks.getCurrentServer();
@@ -85,12 +93,16 @@ public class ServerGameManager extends GameManager {
         if (!PLAYER_TO_TEAM.containsKey(uuid)) {
             return Optional.empty();
         }
-        return TEAM_TO_PLAYER.get(PLAYER_TO_TEAM.get(uuid)).stream()
+        var set = TEAM_TO_PLAYER.get(PLAYER_TO_TEAM.get(uuid)).stream()
                 .map(ServerGameManager::getPlayerS)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .filter(p -> p.hasPermissions(2))
+                .collect(Collectors.toSet());
+        return set.stream()
+                .filter(TradeHelper::isKaMu)
                 .findFirst()
+                .or(() -> set.stream().findAny())
                 .map(Entity::getUUID);
     }
 
@@ -154,13 +166,31 @@ public class ServerGameManager extends GameManager {
             manager = MatchManager.create(mode);
             manager.startServer();
             startMs = System.currentTimeMillis();
+            teamsOnGround.clear();
+            teamsOnGround.addAll(List.of(Direction.values()));
         }, 10);
     }
 
     public static void end() {
         manager = null;
-        GameManager.clear();
-        NetworkHelper.sendToAllPlayers(new TeamPlayerNumberPacket(new int[6]));
+        TaskHelper.addServerTask(task -> {
+            var pkt = new ChangePhasePacket(MatchPhase.CHOOSE);
+            forEachS(p -> NetworkHelper.sendToPlayer(p, pkt));
+            PLAYER_TO_TEAM.forEach((uuid, direction) -> {
+                getPlayerS(uuid).ifPresent(p -> {
+                    GravityChangerAPIProxy.setBaseGravityDirection(p, Direction.DOWN);
+                    p.setGameMode(GameType.ADVENTURE);
+                });
+            });
+            NetworkHelper.sendToAllPlayers(new TeamPlayerNumberPacket(new int[6]));
+            GameManager.clear();
+            getLevel().getEntities().getAll().forEach(entity -> {
+                if (entity instanceof CoreEntity) {
+                    entity.remove(Entity.RemovalReason.DISCARDED);
+                }
+            });
+            teamsOnGround.clear();
+        }, 200);
     }
 
     @SubscribeEvent
@@ -221,6 +251,36 @@ public class ServerGameManager extends GameManager {
                     cfg.finalPhase
             ));
             NetworkHelper.sendToPlayer((ServerPlayer) player, new TimeCheckPacket(startMs));
+            ((ServerPlayer) player).setGameMode(GameType.SURVIVAL);
+        }
+        if (phase == MatchPhase.CHOOSE) {
+            ((ServerPlayer) player).setGameMode(GameType.ADVENTURE);
+        }
+    }
+
+    @SubscribeEvent
+    public static void revive(PlayerRespawnPositionEvent event) {
+        if (PLAYER_TO_TEAM.containsKey(event.getEntity().getUUID()) && phase != MatchPhase.CHOOSE) {
+            var team = PLAYER_TO_TEAM.get(event.getEntity().getUUID());
+            Optional.ofNullable(getConfig().waitingPos.get(team))
+                    .ifPresent(blockPos -> {
+                        var old = event.getDimensionTransition();
+                        event.setDimensionTransition(new DimensionTransition(old.newLevel(),
+                                blockPos.getBottomCenter(),
+                                old.speed(), old.xRot(), old.yRot(), old.postDimensionTransition()));
+                    });
+            var deathTime = PLAYER_DEATH.compute(event.getEntity().getUUID(), (uuid, integer) -> integer == null ? 0 : ++integer) * 10;
+            ((ServerPlayer) event.getEntity()).connection.send(new ClientboundSetSubtitleTextPacket(Component.literal("将于 " + deathTime + " 秒后复活")));
+            TaskHelper.addServerTask(() -> {
+                getPlayerS(event.getEntity().getUUID()).ifPresent(p -> {
+                    var posList = switch (GameManager.mode) {
+                        case CORE, SIEGE -> getConfig().corePos.get(team);
+                        case INTRUDER -> getConfig().spawnPos.get(team);
+                    };
+                    var pos = posList.get(ThreadLocalRandom.current().nextInt(posList.size()));
+                    p.teleportTo(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
+                });
+            }, deathTime * 20);
         }
     }
 }

@@ -50,11 +50,13 @@ public class MainScreen extends TScreen {
             button.setOnPress(b -> {
             });
             button.setForeground(0xffa0a0a0);
+            button.getButton().active = false;
         } else {
             button.setOnPress(b -> {
                 NetworkHelper.sendToServer(new PickTeamPacket(direction));
             });
             button.setForeground(0xffffffff);
+            button.getButton().active = true;
         }
     }
 
