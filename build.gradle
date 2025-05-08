@@ -165,10 +165,10 @@ dependencies {
     }
     //implementation(jarJar(fileTree(dir: 'libs', include: ['*.jar'])))
 
-    implementation(jarJar("cn.ussshenzhou:section31:0.1.+"))
+    implementation("cn.ussshenzhou:section31:0.1.+")
     additionalRuntimeClasspath "org.sinytra:connector:2.0.0-beta.7+1.21.1"
     // Add FFAPI dependency
-    implementation(jarJar("org.sinytra.forgified-fabric-api:forgified-fabric-api:0.+"))
+    implementation(jarJar("org.sinytra.forgified-fabric-api:forgified-fabric-api:0.107.+"))
     // Install desired Fabric mods. Make sure they remain unmapped at runtime
 
     implementation(jarJar("dev.onyxstudios.cardinal-components-api:cardinal-components-base:6.1.1") {
