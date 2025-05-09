@@ -187,11 +187,13 @@ public class ServerGameManager extends GameManager {
             });
             NetworkHelper.sendToAllPlayers(new TeamPlayerNumberPacket(new int[6]));
             GameManager.clear();
+            ArrayList<CoreEntity> coresToRemove = new ArrayList<>();
             getLevel().getEntities().getAll().forEach(entity -> {
                 if (entity instanceof CoreEntity) {
-                    entity.remove(Entity.RemovalReason.DISCARDED);
+                    coresToRemove.add((CoreEntity) entity);
                 }
             });
+            coresToRemove.forEach(entity -> entity.remove(Entity.RemovalReason.DISCARDED));
             teamsOnGround.clear();
         }, 200);
     }
@@ -264,6 +266,7 @@ public class ServerGameManager extends GameManager {
     @SubscribeEvent
     public static void revive(PlayerRespawnPositionEvent event) {
         if (PLAYER_TO_TEAM.containsKey(event.getEntity().getUUID()) && phase != MatchPhase.CHOOSE) {
+            //TODO set to spectator
             var team = PLAYER_TO_TEAM.get(event.getEntity().getUUID());
             Optional.ofNullable(getConfig().waitingPos.get(team))
                     .ifPresent(blockPos -> {

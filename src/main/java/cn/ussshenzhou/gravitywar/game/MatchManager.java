@@ -140,6 +140,7 @@ public abstract class MatchManager {
                     var posList = getConfig().corePos.get(direction);
                     var pos = posList.get(ThreadLocalRandom.current().nextInt(posList.size()));
                     teleportWithDiffuse(p, pos);
+                    GravityChangerAPIProxy.setBaseGravityDirection(p, direction);
                 });
             });
             getConfig().corePos.forEach((direction, blockPos) -> {
