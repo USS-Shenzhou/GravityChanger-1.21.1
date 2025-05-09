@@ -2,9 +2,7 @@ package cn.ussshenzhou.gravitywar.network.s2c;
 
 import cn.ussshenzhou.gravitywar.GravityWar;
 import cn.ussshenzhou.gravitywar.game.*;
-import cn.ussshenzhou.t88.config.ConfigHelper;
-import cn.ussshenzhou.t88.gui.HudManager;
-import cn.ussshenzhou.t88.gui.widegt.TComponent;
+import cn.ussshenzhou.gravitywar.network.Util;
 import cn.ussshenzhou.t88.network.annotation.ClientHandler;
 import cn.ussshenzhou.t88.network.annotation.Decoder;
 import cn.ussshenzhou.t88.network.annotation.Encoder;
@@ -16,7 +14,6 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
 
@@ -82,18 +79,7 @@ public class StartCPacket {
     @ClientHandler
     @OnlyIn(Dist.CLIENT)
     public void handler(IPayloadContext context) {
-        ClientGameManager.clear();
-        HudManager.removeInstanceOf(TComponent.class);
-        GameManager.PLAYER_TO_TEAM.putAll(playerToTeam);
-        playerToTeam.forEach((uuid, direction) ->
-                GameManager.TEAM_TO_PLAYER.computeIfAbsent(direction, d -> new HashSet<>()).add(uuid));
-        GameManager.phase = phase;
-        GameManager.mode = mode;
-        GameManager.maxPlayerPerTeam = maxPlayerPerTeam;
-        GameManager.victoryScore = victoryScore;
-        ConfigHelper.getConfigWrite(GravityWarConfig.class, c -> c.preparePhase = preparePhase);
-        ConfigHelper.getConfigWrite(GravityWarConfig.class, c -> c.battlePhase = battlePhase);
-        ConfigHelper.getConfigWrite(GravityWarConfig.class, c -> c.finalPhase = finalPhase);
-        ClientGameManager.start();
+        Util.handleStartCPacket(this);
     }
+
 }
