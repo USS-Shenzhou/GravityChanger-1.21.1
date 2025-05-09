@@ -2,7 +2,6 @@ package cn.ussshenzhou.gravitywar.network.s2c;
 
 import cn.ussshenzhou.gravitywar.GravityWar;
 import cn.ussshenzhou.gravitywar.game.GravityWarConfig;
-import cn.ussshenzhou.gravitywar.network.Util;
 import cn.ussshenzhou.t88.config.ConfigHelper;
 import cn.ussshenzhou.t88.network.annotation.ClientHandler;
 import cn.ussshenzhou.t88.network.annotation.Decoder;
@@ -32,12 +31,12 @@ public class IntruderModeConfigPacket {
 
     @Decoder
     public IntruderModeConfigPacket(FriendlyByteBuf buf) {
-        this.spots = buf.readMap(Util.CODEC_DIRECTION, Util.CODEC_BLOCK_POS_LIST);
+        this.spots = buf.readMap(UtilS.CODEC_DIRECTION, UtilS.CODEC_BLOCK_POS_LIST);
     }
 
     @Encoder
     public void encode(FriendlyByteBuf buf) {
-        buf.writeMap(spots, Util.CODEC_DIRECTION, Util.CODEC_BLOCK_POS_LIST);
+        buf.writeMap(spots, UtilS.CODEC_DIRECTION, UtilS.CODEC_BLOCK_POS_LIST);
     }
 
     @ClientHandler

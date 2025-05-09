@@ -84,7 +84,10 @@ public class ServerGameManager extends GameManager {
         for (UUID uuid : offline) {
             var dir = PLAYER_TO_TEAM.remove(uuid);
             if (dir == null) {
-                TEAM_TO_PLAYER.get(dir).remove(uuid);
+                TEAM_TO_PLAYER.computeIfPresent(dir, (direction, uuids) -> {
+                    uuids.remove(uuid);
+                    return uuids;
+                });
             }
         }
     }

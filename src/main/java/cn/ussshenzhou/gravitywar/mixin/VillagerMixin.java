@@ -1,7 +1,6 @@
 package cn.ussshenzhou.gravitywar.mixin;
 
-import cn.ussshenzhou.gravitywar.network.Util;
-import net.minecraft.stats.Stats;
+import cn.ussshenzhou.gravitywar.network.UtilC;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
@@ -13,7 +12,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.client.ClientHooks;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
@@ -61,7 +59,7 @@ public abstract class VillagerMixin extends AbstractVillager implements Reputati
 
                 //this.startTrading(player);
             } else {
-                Util.openTradeScreen();
+                UtilC.openTradeScreen();
             }
 
             return InteractionResult.sidedSuccess(this.level().isClientSide);

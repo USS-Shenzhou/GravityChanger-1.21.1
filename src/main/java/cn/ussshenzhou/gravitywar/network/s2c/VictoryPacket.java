@@ -1,7 +1,7 @@
 package cn.ussshenzhou.gravitywar.network.s2c;
 
 import cn.ussshenzhou.gravitywar.GravityWar;
-import cn.ussshenzhou.gravitywar.network.Util;
+import cn.ussshenzhou.gravitywar.network.UtilC;
 import cn.ussshenzhou.t88.network.annotation.ClientHandler;
 import cn.ussshenzhou.t88.network.annotation.Decoder;
 import cn.ussshenzhou.t88.network.annotation.Encoder;
@@ -36,7 +36,7 @@ public class VictoryPacket {
     @ClientHandler
     @OnlyIn(Dist.CLIENT)
     public void handler(IPayloadContext context) {
-        Util.handleVictoryPacket(this, context);
+        UtilC.handleVictoryPacket(this, context);
     }
 
 }

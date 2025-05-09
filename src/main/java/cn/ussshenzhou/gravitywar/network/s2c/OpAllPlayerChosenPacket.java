@@ -1,7 +1,7 @@
 package cn.ussshenzhou.gravitywar.network.s2c;
 
 import cn.ussshenzhou.gravitywar.GravityWar;
-import cn.ussshenzhou.gravitywar.network.Util;
+import cn.ussshenzhou.gravitywar.network.UtilC;
 import cn.ussshenzhou.t88.network.annotation.ClientHandler;
 import cn.ussshenzhou.t88.network.annotation.Decoder;
 import cn.ussshenzhou.t88.network.annotation.Encoder;
@@ -27,18 +27,18 @@ public class OpAllPlayerChosenPacket {
 
     @Decoder
     public OpAllPlayerChosenPacket(FriendlyByteBuf buf) {
-        this.team2Players = buf.readMap(Util.CODEC_DIRECTION, Util.CODEC_UUID_SET);
+        this.team2Players = buf.readMap(UtilS.CODEC_DIRECTION, UtilS.CODEC_UUID_SET);
     }
 
     @Encoder
     public void encode(FriendlyByteBuf buf) {
-        buf.writeMap(team2Players, Util.CODEC_DIRECTION, Util.CODEC_UUID_SET);
+        buf.writeMap(team2Players, UtilS.CODEC_DIRECTION, UtilS.CODEC_UUID_SET);
     }
 
     @ClientHandler
     @OnlyIn(Dist.CLIENT)
     public void handler(IPayloadContext context) {
-        Util.handleOpAllPlayerChosenPacket(this);
+        UtilC.handleOpAllPlayerChosenPacket(this);
     }
 
 }

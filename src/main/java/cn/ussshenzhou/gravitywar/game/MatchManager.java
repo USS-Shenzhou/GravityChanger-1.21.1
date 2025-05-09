@@ -20,10 +20,7 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.GameType;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
@@ -36,7 +33,6 @@ import static cn.ussshenzhou.gravitywar.game.ServerGameManager.*;
  * @author USS_Shenzhou
  */
 public abstract class MatchManager {
-    private long startMs = 0;
 
     public void startServer() {
         phasePrep();
@@ -186,6 +182,9 @@ public abstract class MatchManager {
                     });
             List<Direction> failed = new ArrayList<>();
             for (var team : teamsOnGround) {
+                if (TEAM_TO_PLAYER.get(team) == null) {
+                    continue;
+                }
                 var playerNumber = TEAM_TO_PLAYER.get(team).parallelStream()
                         .map(ServerGameManager::getPlayerS)
                         .filter(Optional::isPresent)
