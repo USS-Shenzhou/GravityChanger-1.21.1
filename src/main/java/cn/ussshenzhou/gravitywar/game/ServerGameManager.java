@@ -2,6 +2,7 @@ package cn.ussshenzhou.gravitywar.game;
 
 import cn.ussshenzhou.gravitywar.entity.CoreEntity;
 import cn.ussshenzhou.gravitywar.network.s2c.*;
+import cn.ussshenzhou.gravitywar.util.DirectionHelper;
 import cn.ussshenzhou.gravitywar.util.GravityChangerAPIProxy;
 import cn.ussshenzhou.gravitywar.util.TradeHelper;
 import cn.ussshenzhou.t88.config.ConfigHelper;
@@ -31,6 +32,7 @@ import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * @author USS_Shenzhou
@@ -266,7 +268,6 @@ public class ServerGameManager extends GameManager {
     @SubscribeEvent
     public static void revive(PlayerRespawnPositionEvent event) {
         if (PLAYER_TO_TEAM.containsKey(event.getEntity().getUUID()) && phase != MatchPhase.CHOOSE) {
-            //TODO set to spectator
             var team = PLAYER_TO_TEAM.get(event.getEntity().getUUID());
             Optional.ofNullable(getConfig().waitingPos.get(team))
                     .ifPresent(blockPos -> {
@@ -277,14 +278,26 @@ public class ServerGameManager extends GameManager {
                     });
             var deathTime = PLAYER_DEATH.compute(event.getEntity().getUUID(), (uuid, integer) -> integer == null ? 0 : ++integer) * 10;
             ((ServerPlayer) event.getEntity()).connection.send(new ClientboundSetSubtitleTextPacket(Component.literal("将于 " + deathTime + " 秒后复活")));
+            ((ServerPlayer) event.getEntity()).setGameMode(GameType.SPECTATOR);
             TaskHelper.addServerTask(() -> {
                 getPlayerS(event.getEntity().getUUID()).ifPresent(p -> {
-                    var posList = switch (GameManager.mode) {
-                        case CORE, SIEGE -> getConfig().corePos.get(team);
-                        case INTRUDER -> getConfig().spawnPos.get(team);
-                    };
-                    var pos = posList.get(ThreadLocalRandom.current().nextInt(posList.size()));
-                    p.teleportTo(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
+                    switch (GameManager.mode) {
+                        case CORE, SIEGE -> {
+                            var posList = StreamSupport.stream(getLevel().getEntities().getAll().spliterator(), false)
+                                    .filter(entity -> entity instanceof CoreEntity)
+                                    .filter(core -> DirectionHelper.getPyramidRegion(core.position()) == team)
+                                    .toList();
+
+                            var pos = posList.get(ThreadLocalRandom.current().nextInt(posList.size()));
+                            teleportWithDiffuse(p, pos.blockPosition());
+                        }
+                        case INTRUDER -> {
+                            var posList = getConfig().spawnPos.get(team);
+                            var pos = posList.get(ThreadLocalRandom.current().nextInt(posList.size()));
+                            p.teleportTo(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
+                        }
+                    }
+                    p.setGameMode(GameType.SPECTATOR);
                 });
             }, deathTime * 20);
         }
