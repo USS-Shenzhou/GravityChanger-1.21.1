@@ -11,6 +11,8 @@ import cn.ussshenzhou.t88.network.annotation.NetPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.*;
@@ -37,6 +39,7 @@ public class OpAllPlayerChosenPacket {
     }
 
     @ClientHandler
+    @OnlyIn(Dist.CLIENT)
     public void handler(IPayloadContext context) {
         GameManager.TEAM_TO_PLAYER.clear();
         GameManager.TEAM_TO_PLAYER.putAll(team2Players);

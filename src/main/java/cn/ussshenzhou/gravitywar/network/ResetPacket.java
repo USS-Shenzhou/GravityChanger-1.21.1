@@ -6,6 +6,8 @@ import cn.ussshenzhou.gravitywar.game.ServerGameManager;
 import cn.ussshenzhou.t88.network.NetworkHelper;
 import cn.ussshenzhou.t88.network.annotation.*;
 import net.minecraft.network.FriendlyByteBuf;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 /**
@@ -37,6 +39,7 @@ public class ResetPacket {
     }
 
     @ClientHandler
+    @OnlyIn(Dist.CLIENT)
     public void handlerC(IPayloadContext context) {
         ClientGameManager.end();
     }

@@ -12,6 +12,8 @@ import cn.ussshenzhou.t88.network.annotation.NetPacket;
 import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.HashSet;
@@ -78,6 +80,7 @@ public class StartCPacket {
     }
 
     @ClientHandler
+    @OnlyIn(Dist.CLIENT)
     public void handler(IPayloadContext context) {
         ClientGameManager.clear();
         HudManager.removeInstanceOf(TComponent.class);

@@ -6,6 +6,8 @@ import cn.ussshenzhou.t88.config.ConfigHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.HashMap;
@@ -35,6 +37,7 @@ public class CoreModeConfigPacket {
     }
 
     //@ClientHandler
+    @OnlyIn(Dist.CLIENT)
     public void handler(IPayloadContext context) {
         ConfigHelper.getConfigWrite(GravityWarConfig.class, c -> {
             c.corePos = cores;

@@ -13,6 +13,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 /**
@@ -37,6 +39,7 @@ public class VictoryPacket {
     }
 
     @ClientHandler
+    @OnlyIn(Dist.CLIENT)
     public void handler(IPayloadContext context) {
         var player = context.player();
         player.level()

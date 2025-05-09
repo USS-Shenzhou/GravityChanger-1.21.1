@@ -18,6 +18,8 @@ import cn.ussshenzhou.t88.task.TaskHelper;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 /**
@@ -42,6 +44,7 @@ public class ChangePhasePacket {
     }
 
     @ClientHandler
+    @OnlyIn(Dist.CLIENT)
     public void handlerC(IPayloadContext context) {
         AutoCloseHintHUD toAdd = switch (GameManager.mode) {
             case SIEGE -> switch (phase) {

@@ -5,6 +5,8 @@ import cn.ussshenzhou.gravitywar.game.ClientGameManager;
 import cn.ussshenzhou.t88.network.annotation.*;
 import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.UUID;
@@ -31,6 +33,7 @@ public class TeamPlayerNumberPacket {
     }
 
     @ClientHandler
+    @OnlyIn(Dist.CLIENT)
     public void handler(IPayloadContext context) {
         ClientGameManager.setPlayerNumber(number);
     }

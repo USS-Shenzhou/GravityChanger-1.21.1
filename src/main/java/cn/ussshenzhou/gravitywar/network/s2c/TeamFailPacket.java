@@ -10,6 +10,8 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 /**
@@ -34,6 +36,7 @@ public class TeamFailPacket {
     }
 
     @ClientHandler
+    @OnlyIn(Dist.CLIENT)
     public void handlerC(IPayloadContext context) {
         var player = context.player();
         player.level()

@@ -8,6 +8,8 @@ import cn.ussshenzhou.t88.network.NetworkHelper;
 import cn.ussshenzhou.t88.network.annotation.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 /**
@@ -29,6 +31,7 @@ public class ForceChooseScreenPacket {
     }
 
     @ClientHandler
+    @OnlyIn(Dist.CLIENT)
     public void handlerC(IPayloadContext context) {
         Minecraft.getInstance().setScreen(new MainScreen());
     }
