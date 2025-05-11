@@ -19,6 +19,8 @@ public abstract class GameManager {
     public static int maxPlayerPerTeam = 17;
     public static int victoryScore = 25;
     public static MatchManager manager;
+    public static RandomEvent event = null;
+    public static RandomEvent lastEvent = null;
 
 
     public static Optional<Direction> getTeam(UUID uuid) {

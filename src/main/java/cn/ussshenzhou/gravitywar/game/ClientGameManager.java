@@ -10,6 +10,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -26,7 +27,7 @@ import java.util.stream.Collectors;
 public class ClientGameManager extends GameManager {
     private static int[] playerNumber = new int[6];
 
-    private static Minecraft getMC() {
+    public static Minecraft getMC() {
         return Minecraft.getInstance();
     }
 
@@ -62,9 +63,7 @@ public class ClientGameManager extends GameManager {
     }
 
     public static Optional<Direction> getMyTeam() {
-        //TODO
-        return Optional.of(Direction.NORTH);
-        //return getMC().player == null ? Optional.empty() : Optional.ofNullable(PLAYER_TO_TEAM.get(getMC().player.getUUID()));
+        return getMC().player == null ? Optional.empty() : Optional.ofNullable(PLAYER_TO_TEAM.get(getMC().player.getUUID()));
     }
 
     public static Optional<Player> getPlayerC(UUID uuid) {

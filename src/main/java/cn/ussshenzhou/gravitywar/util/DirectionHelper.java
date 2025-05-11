@@ -166,8 +166,8 @@ public class DirectionHelper {
         return switch (dir) {
             case DOWN -> "黑队";
             case UP -> "橙队";
-            case NORTH -> "黄队";
-            case SOUTH -> "粉队";
+            case NORTH -> "粉队";
+            case SOUTH -> "黄队";
             case WEST -> "红队";
             case EAST -> "蓝队";
         };

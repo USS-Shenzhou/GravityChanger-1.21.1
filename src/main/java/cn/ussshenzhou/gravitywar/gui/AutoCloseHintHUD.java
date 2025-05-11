@@ -4,19 +4,16 @@ import cn.ussshenzhou.gravitywar.game.ClientGameManager;
 import cn.ussshenzhou.gravitywar.util.ColorHelper;
 import cn.ussshenzhou.gravitywar.util.DirectionHelper;
 import cn.ussshenzhou.t88.gui.HudManager;
-import cn.ussshenzhou.t88.gui.util.Border;
 import cn.ussshenzhou.t88.gui.util.HorizontalAlignment;
-import cn.ussshenzhou.t88.gui.util.LayoutHelper;
 import cn.ussshenzhou.t88.gui.widegt.TLabel;
 import cn.ussshenzhou.t88.gui.widegt.TPanel;
-import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 
 /**
  * @author USS_Shenzhou
  */
-public abstract class AutoCloseHintHUD extends TPanel {
-    protected static final int LIFE = 10 * 20;
+public class AutoCloseHintHUD extends TPanel {
+    protected int life = 10 * 20;
     protected int age = 0;
     protected final TLabel mode = new TLabel();
     protected final TLabel phase = new TLabel();
@@ -44,7 +41,6 @@ public abstract class AutoCloseHintHUD extends TPanel {
                     this.team.setForeground(ColorHelper.getARGB(d, 0xff));
                     this.team.setText(Component.literal(DirectionHelper.getName(d)));
                 });
-        this.add(this.team);
         this.team.setFontSize(14);
         team.setHorizontalAlignment(HorizontalAlignment.LEFT);
     }
@@ -71,7 +67,7 @@ public abstract class AutoCloseHintHUD extends TPanel {
     @Override
     public void tickT() {
         age++;
-        if (age > LIFE) {
+        if (age > life) {
             HudManager.remove(this);
         }
         super.tickT();

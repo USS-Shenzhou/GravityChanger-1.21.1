@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "gravitywar.refmap.json",
   "mixins": [
+    "BlockMixin",
     "CommonHooksMixin",
     "EntityMixin",
     "InventoryMixin",
@@ -15,6 +16,7 @@
     "LightTextureMixin",
     "MinecraftMixin",
     "ParticleMixin",
+    "PlayerTabOverlayMixin",
     "ScreenEffectRendererMixin",
     "SectionCompilerMixin"
   ],

@@ -11,18 +11,28 @@ import cn.ussshenzhou.t88.task.TaskHelper;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.portal.DimensionTransition;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.LivingKnockBackEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerRespawnPositionEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
@@ -132,28 +142,27 @@ public class ServerGameManager extends GameManager {
 
     public static void start() {
         //note all
-        var notify = new ClientboundSetSubtitleTextPacket(Component.literal("对战将于10秒后开始"));
-        getServer().getPlayerList().getPlayers()
-                .forEach(player -> player.connection.send(notify));
+        NetworkHelper.sendToAllPlayers(new SubtitlePacket("对战将于10秒后开始"));
         NetworkHelper.sendToAllPlayers(new DingPacket());
         //handle neutral players
-        var neutralPlayers = getServer().getPlayerList().getPlayers().stream()
-                .filter(player -> !player.hasPermissions(2) && !PLAYER_TO_TEAM.containsKey(player.getUUID()))
-                .collect(Collectors.toSet());
-        maxPlayerPerTeam = (int) getServer().getPlayerList().getPlayers().stream()
-                .filter(p -> !p.hasPermissions(2))
-                .count() / 6 + 1;
-        while (!neutralPlayers.isEmpty()) {
-            var player = neutralPlayers.iterator().next();
-            TEAM_TO_PLAYER.entrySet().stream()
-                    .filter(e -> e.getValue().size() < maxPlayerPerTeam)
-                    .findAny()
-                    .ifPresent(e -> {
-                        e.getValue().add(player.getUUID());
-                        PLAYER_TO_TEAM.put(player.getUUID(), e.getKey());
-                    });
+        if (mode != MatchMode.SIEGE) {
+            var neutralPlayers = getServer().getPlayerList().getPlayers().stream()
+                    .filter(player -> !player.hasPermissions(2) && !PLAYER_TO_TEAM.containsKey(player.getUUID()))
+                    .collect(Collectors.toSet());
+            maxPlayerPerTeam = (int) getServer().getPlayerList().getPlayers().stream()
+                    .filter(p -> !p.hasPermissions(2))
+                    .count() / 6 + 1;
+            while (!neutralPlayers.isEmpty()) {
+                var player = neutralPlayers.iterator().next();
+                TEAM_TO_PLAYER.entrySet().stream()
+                        .filter(e -> e.getValue().size() < maxPlayerPerTeam)
+                        .findAny()
+                        .ifPresent(e -> {
+                            e.getValue().add(player.getUUID());
+                            PLAYER_TO_TEAM.put(player.getUUID(), e.getKey());
+                        });
+            }
         }
-
         //real start
         TaskHelper.addServerTask(() -> {
             var cfg = ConfigHelper.getConfigRead(GravityWarConfig.class);
@@ -173,7 +182,17 @@ public class ServerGameManager extends GameManager {
             startMs = System.currentTimeMillis();
             teamsOnGround.clear();
             teamsOnGround.addAll(List.of(Direction.values()));
-        }, 10);
+            cfg.villagerPos.forEach(blockPos -> {
+                var villager = EntityType.VILLAGER.create(getLevel());
+                if (villager != null) {
+                    villager.setNoAi(true);
+                    villager.teleportTo(blockPos.getX(), blockPos.getY(), blockPos.getZ());
+                    GravityChangerAPIProxy.setBaseGravityDirection(villager, DirectionHelper.getPyramidRegion(blockPos));
+                    villager.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, -1, 5, false, false));
+                    getLevel().addFreshEntity(villager);
+                }
+            });
+        }, 10 * 20);
     }
 
     public static void end() {
@@ -189,10 +208,10 @@ public class ServerGameManager extends GameManager {
             });
             NetworkHelper.sendToAllPlayers(new TeamPlayerNumberPacket(new int[6]));
             GameManager.clear();
-            ArrayList<CoreEntity> coresToRemove = new ArrayList<>();
+            ArrayList<Entity> coresToRemove = new ArrayList<>();
             getLevel().getEntities().getAll().forEach(entity -> {
-                if (entity instanceof CoreEntity) {
-                    coresToRemove.add((CoreEntity) entity);
+                if (entity instanceof CoreEntity || entity instanceof Villager) {
+                    coresToRemove.add(entity);
                 }
             });
             coresToRemove.forEach(entity -> entity.remove(Entity.RemovalReason.DISCARDED));
@@ -214,10 +233,7 @@ public class ServerGameManager extends GameManager {
         }
         if (event.getEntity() instanceof Player player0
                 && event.getSource().getEntity() instanceof Player player1) {
-            if (player0.getId() != player1.getId()
-                    && PLAYER_TO_TEAM.get(player0.getUUID()) == PLAYER_TO_TEAM.get(player1.getUUID())) {
-                event.setCanceled(true);
-            } else if (phase == MatchPhase.PREP) {
+            if (phase == MatchPhase.PREP) {
                 event.setCanceled(true);
             }
         }
@@ -260,7 +276,7 @@ public class ServerGameManager extends GameManager {
             NetworkHelper.sendToPlayer((ServerPlayer) player, new TimeCheckPacket(startMs));
             ((ServerPlayer) player).setGameMode(GameType.SURVIVAL);
         }
-        if (phase == MatchPhase.CHOOSE) {
+        if (phase == MatchPhase.CHOOSE && !player.hasPermissions(4)) {
             ((ServerPlayer) player).setGameMode(GameType.ADVENTURE);
         }
     }
@@ -277,7 +293,7 @@ public class ServerGameManager extends GameManager {
                                 old.speed(), old.xRot(), old.yRot(), old.postDimensionTransition()));
                     });
             var deathTime = PLAYER_DEATH.compute(event.getEntity().getUUID(), (uuid, integer) -> integer == null ? 0 : ++integer) * 10;
-            ((ServerPlayer) event.getEntity()).connection.send(new ClientboundSetSubtitleTextPacket(Component.literal("将于 " + deathTime + " 秒后复活")));
+            NetworkHelper.sendToPlayer((ServerPlayer) event.getEntity(), new SubtitlePacket("将于 " + deathTime + " 秒后复活"));
             ((ServerPlayer) event.getEntity()).setGameMode(GameType.SPECTATOR);
             TaskHelper.addServerTask(() -> {
                 getPlayerS(event.getEntity().getUUID()).ifPresent(p -> {
@@ -297,9 +313,30 @@ public class ServerGameManager extends GameManager {
                             p.teleportTo(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
                         }
                     }
-                    p.setGameMode(GameType.SPECTATOR);
+                    p.setGameMode(GameType.SURVIVAL);
                 });
             }, deathTime * 20);
+        }
+    }
+
+    @SubscribeEvent
+    public static void itemEntityChangeGravity(EntityJoinLevelEvent event) {
+        if (event.getEntity() instanceof ItemEntity) {
+            GravityChangerAPIProxy.setBaseGravityDirection(event.getEntity(), DirectionHelper.getPyramidRegion(event.getEntity().position()));
+        }
+    }
+
+    @SubscribeEvent
+    public static void higherKnockBack(LivingKnockBackEvent event) {
+        if (GameManager.event == RandomEvent.HIGH_KNOCKBACK) {
+            event.setStrength(event.getStrength() * 5);
+        }
+    }
+
+    @SubscribeEvent
+    public static void cancelFallenDamage(LivingFallEvent event) {
+        if (GameManager.event == RandomEvent.ULTRA_BOUNCE) {
+            event.setDamageMultiplier(0);
         }
     }
 }

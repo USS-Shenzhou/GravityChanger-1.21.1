@@ -10,7 +10,9 @@ import cn.ussshenzhou.t88.gui.HudManager;
 import cn.ussshenzhou.t88.gui.widegt.TComponent;
 import cn.ussshenzhou.t88.task.TaskHelper;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
@@ -55,7 +57,7 @@ public class UtilC {
             };
         };
         if (toAdd != null) {
-            HudManager.add(toAdd);
+            HudManager.addOrReplaceIfSameClassExist(toAdd);
         }
         GameManager.phase = changePhasePacket.phase;
 
@@ -66,7 +68,7 @@ public class UtilC {
                         player.getY(),
                         player.getZ(),
                         switch (changePhasePacket.phase) {
-                            case CHOOSE,PREP -> SoundEvents.EXPERIENCE_ORB_PICKUP;
+                            case CHOOSE, PREP -> SoundEvents.EXPERIENCE_ORB_PICKUP;
                             case BATTLE -> SoundEvents.GOAT_HORN_SOUND_VARIANTS.get(1).value();
                             case FINAL -> SoundEvents.ENDER_DRAGON_GROWL;
                         },
@@ -106,7 +108,11 @@ public class UtilC {
                         0.7f,
                         false
                 );
-        Minecraft.getInstance().gui.setSubtitle(Component.literal(teamFailPacket.message));
+        HudManager.addOrReplaceIfSameClassExist(new SubtitleHUD(teamFailPacket.message));
+    }
+
+    public static void handleSubtitlePacket(SubtitlePacket subtitlePacket, IPayloadContext context) {
+        HudManager.addOrReplaceIfSameClassExist(new SubtitleHUD(subtitlePacket.message));
     }
 
     public static void handleTimeCheckPacket(TimeCheckPacket timeCheckPacket) {
@@ -135,5 +141,49 @@ public class UtilC {
                 );
         HudManager.add(new VictoryHUD(victoryPacket.victory));
         TaskHelper.addClientTask(ClientGameManager::end, 200);
+    }
+
+    public static void handleRandomEventPacket(RandomEventPacket randomEventPacket, IPayloadContext context) {
+        GameManager.event = randomEventPacket.event;
+        if (context.flow() == PacketFlow.CLIENTBOUND) {
+            TaskHelper.addClientTask(() -> {
+                GameManager.event = null;
+            }, randomEventPacket.event.time * 20);
+        } else {
+            TaskHelper.addServerTask(() -> {
+                GameManager.event = null;
+            }, randomEventPacket.event.time * 20);
+        }
+        HudManager.addOrReplaceIfSameClassExist(new AutoCloseHintHUD("出现扰动！",
+                switch (randomEventPacket.event) {
+                    case FOG -> "迷雾重重";
+                    case RANDOM_GRAVITY -> "重力紊乱";
+                    case LOW_GRAVITY -> "低功率模式";
+                    case FIREBALL -> "太阳约束失控";
+                    case CORE_REVIVE -> "核心修复包已生成";
+                    case ULTRA_BOUNCE -> "史莱姆感染";
+                    case HIGH_KNOCKBACK -> "强作用力";
+                    case RESPAWN_BEACON -> "重生信标已投放";
+                },
+                switch (randomEventPacket.event) {
+                    case FOG -> "核心将会在周围生成迷雾来保护自己（60秒）";
+                    case RANDOM_GRAVITY -> {
+                        var dir = Direction.values()[Minecraft.getInstance().player.getUUID().hashCode() / 6];
+                        yield "重力即将转向 " + switch (dir) {
+                            case DOWN -> "下（黑）";
+                            case UP -> "上（橙）";
+                            case NORTH -> "北（粉）";
+                            case SOUTH -> "南（黄）";
+                            case WEST -> "西（红）";
+                            case EAST -> "东（蓝）";
+                        } + "(持续90秒)";
+                    }
+                    case LOW_GRAVITY -> "六分之一重力（60秒）";
+                    case FIREBALL -> "避开从太阳飞来的火球！（30秒）";
+                    case CORE_REVIVE -> "跟着粒子指引找到备用核心，带回己方区域并放置";
+                    case ULTRA_BOUNCE -> "没有摔落伤害，弹！弹！弹！（60秒）";
+                    case HIGH_KNOCKBACK -> "击退增强500%（60秒）";
+                    case RESPAWN_BEACON -> "跟着粒子找到重生信标，放置在任何地方！（60秒）";
+                }));
     }
 }

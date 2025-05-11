@@ -7,6 +7,7 @@ public abstract class CoreHintHUD {
     public static class Prep extends AutoCloseHintHUD {
         public Prep() {
             super("死斗", "准备阶段", "熟悉地形和操作，收集资源，打造装备");
+            this.add(team);
         }
     }
 

@@ -64,10 +64,10 @@ public class BorderRenderer {
         RenderSystem.depthMask(true);
     }
 
-    private static final float WARN_DISTANCE = 4.5f;
+    private static final float WARN_DISTANCE = 6f;
 
     private static float shouldRenderBorder() {
-        if (Minecraft.getInstance().player != null && !(Minecraft.getInstance().player.isCreative() || Minecraft.getInstance().player.isSpectator())) {
+        if (Minecraft.getInstance().player != null && (Minecraft.getInstance().player.isCreative() || Minecraft.getInstance().player.isSpectator())) {
             return 0;
         }
         var camPos = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();

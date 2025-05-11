@@ -16,6 +16,7 @@ public abstract class SiegeHintHUD {
     public static class Prep extends AutoCloseHintHUD {
         public Prep() {
             super("围攻", "准备阶段", "熟悉地形和操作，收集资源，打造装备");
+            this.add(team);
         }
     }
 

@@ -85,6 +85,18 @@ public class ModCommand {
                                         )
                         )
                         .then(
+                                Commands.literal("villagerPos")
+                                        .then(
+                                                Commands.argument("pos", Vec3Argument.vec3())
+                                                        .executes(ct -> {
+                                                            ConfigHelper.getConfigWrite(GravityWarConfig.class, cfg ->
+                                                                    cfg.villagerPos.add(BlockPos.containing(Vec3Argument.getVec3(ct, "pos")))
+                                                            );
+                                                            return 1;
+                                                        })
+                                        )
+                        )
+                        .then(
                                 Commands.literal("spawnPos")
                                         .then(
                                                 Commands.argument("team", EnumArgument.enumArgument(Direction.class))

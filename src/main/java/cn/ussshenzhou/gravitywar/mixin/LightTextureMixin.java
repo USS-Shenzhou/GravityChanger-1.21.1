@@ -15,6 +15,6 @@ public class LightTextureMixin {
 
     @ModifyArg(method = "updateLightTexture", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/platform/NativeImage;setPixelRGBA(III)V"),index = 2)
     private int onUpdateLightTexture(int x) {
-        return 0xffffffff;
+        return 0xfff0f0f0;
     }
 }

@@ -4,6 +4,7 @@ import cn.ussshenzhou.t88.config.TConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,7 @@ public class GravityWarConfig implements TConfig {
     public int battlePhase = 10 * 60;
     public int finalPhase = 10 * 60;
     public Map<Direction, BlockPos> waitingPos = new HashMap<>();
+    public List<BlockPos> villagerPos = new ArrayList<>();
 
     public Map<Direction, List<BlockPos>> corePos = new HashMap<>();
 
