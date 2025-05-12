@@ -1,6 +1,7 @@
 package cn.ussshenzhou.gravitywar.game;
 
 import cn.ussshenzhou.gravitywar.entity.CoreEntity;
+import cn.ussshenzhou.gravitywar.network.UtilS;
 import cn.ussshenzhou.gravitywar.network.s2c.*;
 import cn.ussshenzhou.gravitywar.util.DirectionHelper;
 import cn.ussshenzhou.gravitywar.util.GravityChangerAPIProxy;
@@ -8,12 +9,8 @@ import cn.ussshenzhou.gravitywar.util.TradeHelper;
 import cn.ussshenzhou.t88.config.ConfigHelper;
 import cn.ussshenzhou.t88.network.NetworkHelper;
 import cn.ussshenzhou.t88.task.TaskHelper;
-import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -21,20 +18,18 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.item.FallingBlockEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameType;
-import net.minecraft.world.level.portal.DimensionTransition;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingKnockBackEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerRespawnPositionEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
@@ -144,6 +139,10 @@ public class ServerGameManager extends GameManager {
         //note all
         NetworkHelper.sendToAllPlayers(new SubtitlePacket("对战将于10秒后开始"));
         NetworkHelper.sendToAllPlayers(new DingPacket());
+        UtilS.delayMs(() -> {
+            NetworkHelper.sendToAllPlayers(new SubtitlePacket("对战将于5秒后开始"));
+            NetworkHelper.sendToAllPlayers(new DingPacket());
+        }, 500);
         //handle neutral players
         if (mode != MatchMode.SIEGE) {
             var neutralPlayers = getServer().getPlayerList().getPlayers().stream()
@@ -164,7 +163,7 @@ public class ServerGameManager extends GameManager {
             }
         }
         //real start
-        TaskHelper.addServerTask(() -> {
+        UtilS.delay(() -> {
             var cfg = ConfigHelper.getConfigRead(GravityWarConfig.class);
             NetworkHelper.sendToAllPlayers(new DingPacket());
             NetworkHelper.sendToAllPlayers(new StartCPacket(
@@ -192,12 +191,12 @@ public class ServerGameManager extends GameManager {
                     getLevel().addFreshEntity(villager);
                 }
             });
-        }, 10 * 20);
+        }, 10);
     }
 
     public static void end() {
         manager = null;
-        TaskHelper.addServerTask(task -> {
+        UtilS.delay(() -> {
             var pkt = new ChangePhasePacket(MatchPhase.CHOOSE);
             forEachS(p -> NetworkHelper.sendToPlayer(p, pkt));
             PLAYER_TO_TEAM.forEach((uuid, direction) -> {
@@ -216,7 +215,7 @@ public class ServerGameManager extends GameManager {
             });
             coresToRemove.forEach(entity -> entity.remove(Entity.RemovalReason.DISCARDED));
             teamsOnGround.clear();
-        }, 200);
+        }, 10);
     }
 
     @SubscribeEvent
@@ -282,20 +281,13 @@ public class ServerGameManager extends GameManager {
     }
 
     @SubscribeEvent
-    public static void revive(PlayerRespawnPositionEvent event) {
+    public static void revive(PlayerEvent.PlayerRespawnEvent event) {
         if (PLAYER_TO_TEAM.containsKey(event.getEntity().getUUID()) && phase != MatchPhase.CHOOSE) {
             var team = PLAYER_TO_TEAM.get(event.getEntity().getUUID());
-            Optional.ofNullable(getConfig().waitingPos.get(team))
-                    .ifPresent(blockPos -> {
-                        var old = event.getDimensionTransition();
-                        event.setDimensionTransition(new DimensionTransition(old.newLevel(),
-                                blockPos.getBottomCenter(),
-                                old.speed(), old.xRot(), old.yRot(), old.postDimensionTransition()));
-                    });
             var deathTime = PLAYER_DEATH.compute(event.getEntity().getUUID(), (uuid, integer) -> integer == null ? 0 : ++integer) * 10;
             NetworkHelper.sendToPlayer((ServerPlayer) event.getEntity(), new SubtitlePacket("将于 " + deathTime + " 秒后复活"));
             ((ServerPlayer) event.getEntity()).setGameMode(GameType.SPECTATOR);
-            TaskHelper.addServerTask(() -> {
+            UtilS.delay(() -> {
                 getPlayerS(event.getEntity().getUUID()).ifPresent(p -> {
                     switch (GameManager.mode) {
                         case CORE, SIEGE -> {
@@ -315,13 +307,13 @@ public class ServerGameManager extends GameManager {
                     }
                     p.setGameMode(GameType.SURVIVAL);
                 });
-            }, deathTime * 20);
+            }, deathTime);
         }
     }
 
     @SubscribeEvent
     public static void itemEntityChangeGravity(EntityJoinLevelEvent event) {
-        if (event.getEntity() instanceof ItemEntity) {
+        if (event.getEntity() instanceof ItemEntity || event.getEntity() instanceof FallingBlockEntity) {
             GravityChangerAPIProxy.setBaseGravityDirection(event.getEntity(), DirectionHelper.getPyramidRegion(event.getEntity().position()));
         }
     }

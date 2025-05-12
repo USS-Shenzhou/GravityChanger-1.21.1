@@ -2,6 +2,7 @@ package cn.ussshenzhou.gravitywar.game;
 
 import cn.ussshenzhou.gravitywar.entity.CoreEntity;
 import cn.ussshenzhou.gravitywar.entity.ModEntities;
+import cn.ussshenzhou.gravitywar.network.UtilS;
 import cn.ussshenzhou.gravitywar.network.s2c.ChangePhasePacket;
 import cn.ussshenzhou.gravitywar.network.s2c.IntruderModeConfigPacket;
 import cn.ussshenzhou.gravitywar.network.s2c.RandomEventPacket;
@@ -35,7 +36,9 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.StreamSupport;
 
 import static cn.ussshenzhou.gravitywar.game.GameManager.*;
@@ -50,8 +53,18 @@ public abstract class MatchManager {
 
     public void startServer() {
         phasePrep();
-        TaskHelper.addServerTask(this::phaseBattle, getConfig().preparePhase * 20);
-        TaskHelper.addServerTask(this::phaseFinal, (getConfig().preparePhase + getConfig().battlePhase) * 20);
+        //UtilS.delay(this::phaseBattle, getConfig().preparePhase * 20);
+        //UtilS.delay(this::phaseFinal, (getConfig().preparePhase + getConfig().battlePhase) * 20);
+        CompletableFuture
+                .runAsync(
+                        () -> getServer().execute(this::phaseBattle),
+                        CompletableFuture.delayedExecutor(getConfig().preparePhase, TimeUnit.SECONDS)
+                );
+        CompletableFuture
+                .runAsync(
+                        () -> getServer().execute(this::phaseFinal),
+                        CompletableFuture.delayedExecutor(getConfig().preparePhase + getConfig().battlePhase, TimeUnit.SECONDS)
+                );
     }
 
     public void phasePrep() {
@@ -93,34 +106,34 @@ public abstract class MatchManager {
                 } while (event == lastEvent);
                 lastEvent = event;
                 NetworkHelper.sendToAllPlayers(new RandomEventPacket(event));
-                TaskHelper.addServerTask(() -> event = null, event.time);
+                UtilS.delay(() -> event = null, event.time);
                 switch (event) {
                     case FOG -> {
                         //none
                     }
                     case RANDOM_GRAVITY -> {
-                        TaskHelper.addServerTask(() -> {
+                        UtilS.delay(() -> {
                             forEachS(p -> {
-                                var dir = Direction.values()[p.getUUID().hashCode() / 6];
+                                var dir = Direction.values()[Mth.abs(p.getUUID().hashCode()) / 6];
                                 GravityChangerAPIProxy.setBaseGravityDirection(p, dir);
                             });
-                        }, 10 * 20);
-                        TaskHelper.addServerTask(() -> {
+                        }, 10);
+                        UtilS.delay(() -> {
                             PLAYER_TO_TEAM.entrySet().stream()
                                     .forEach(e -> {
                                         getPlayerS(e.getKey()).ifPresent(p -> GravityChangerAPIProxy.setBaseGravityDirection(p, e.getValue()));
                                     });
-                        }, event.time * 20);
+                        }, event.time);
                     }
                     case LOW_GRAVITY -> {
                         forEachS(p -> {
                             GravityChangerAPIProxy.setBaseGravityStrength(p, 0.15);
                         });
-                        TaskHelper.addServerTask(() -> {
+                        UtilS.delay(() -> {
                             forEachS(p -> {
                                 GravityChangerAPIProxy.setBaseGravityStrength(p, 1);
                             });
-                        }, event.time * 20);
+                        }, event.time);
                     }
                     case RESPAWN_BEACON -> {
                         //TODO
@@ -141,7 +154,7 @@ public abstract class MatchManager {
             }
             tick++;
         } else {
-            tick = 0;
+            tick = 1;
         }
         if (event == RandomEvent.FIREBALL) {
             if (FAKE_OWNER == null) {
@@ -259,6 +272,7 @@ public abstract class MatchManager {
                     var core = ModEntities.CORE_ENTITY_TYPE.get().create(ServerGameManager.getLevel());
                     core.setPos(p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5);
                     ServerGameManager.getLevel().addFreshEntity(core);
+                    core.addEffect(new MobEffectInstance(MobEffects.GLOWING, -1, 0, false, false));
                 });
             });
         }
@@ -271,7 +285,7 @@ public abstract class MatchManager {
             if (phase == MatchPhase.PREP) {
                 forEachS(p -> {
                     var d = DirectionHelper.distanceToBoundary(p.getEyePosition());
-                    if (d <= 0.5) {
+                    if (d <= 0.25) {
                         var posList = getConfig().corePos.get(PLAYER_TO_TEAM.get(p.getUUID()));
                         if (posList != null) {
                             teleportWithDiffuse(p, posList.get(ThreadLocalRandom.current().nextInt(posList.size())));
@@ -282,12 +296,16 @@ public abstract class MatchManager {
                         return;
                     }
                     d = Mth.clamp(d, 0, 4.5);
-                    d = (4.5 - d) * 7;
+                    d = (4.5 - d) / 4.5 * 6;
                     p.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 20, (int) d, true, false));
                 });
             }
             //victory check
             if (System.currentTimeMillis() - ServerGameManager.startMs >= (cfg.preparePhase + cfg.battlePhase + cfg.finalPhase) * 1000L) {
+                ServerGameManager.end();
+                return;
+            }
+            if (teamsOnGround.isEmpty()) {
                 ServerGameManager.end();
                 return;
             }

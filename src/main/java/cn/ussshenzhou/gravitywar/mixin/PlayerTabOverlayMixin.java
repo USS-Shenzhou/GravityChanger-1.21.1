@@ -19,7 +19,7 @@ public class PlayerTabOverlayMixin {
     @ModifyReturnValue(method = "getNameForDisplay", at = @At("RETURN"))
     private Component gwGetNameForDisplay(Component original, @Local(argsOnly = true) PlayerInfo playerInfo) {
         if (GameManager.PLAYER_TO_TEAM.containsKey(playerInfo.getProfile().getId())) {
-            original.getStyle().withColor(ColorHelper.getRGB(GameManager.PLAYER_TO_TEAM.get(playerInfo.getProfile().getId())));
+            return original.copy().withColor(ColorHelper.getRGB(GameManager.PLAYER_TO_TEAM.get(playerInfo.getProfile().getId())));
         }
         return original;
     }

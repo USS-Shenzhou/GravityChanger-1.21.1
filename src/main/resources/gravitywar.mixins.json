@@ -9,9 +9,11 @@
     "CommonHooksMixin",
     "EntityMixin",
     "InventoryMixin",
+    "ServerPlayerMixin",
     "VillagerMixin"
   ],
   "client": [
+    "ClientPacketListenerMixin",
     "HumanoidArmorLayerMixin",
     "LightTextureMixin",
     "MinecraftMixin",

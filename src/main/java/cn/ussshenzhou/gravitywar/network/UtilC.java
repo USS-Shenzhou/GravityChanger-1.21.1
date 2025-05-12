@@ -11,13 +11,15 @@ import cn.ussshenzhou.t88.gui.widegt.TComponent;
 import cn.ussshenzhou.t88.task.TaskHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Direction;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.HashSet;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author USS_Shenzhou
@@ -30,6 +32,8 @@ public class UtilC {
     public static void handleOpAllPlayerChosenPacket(OpAllPlayerChosenPacket opAllPlayerChosenPacket) {
         GameManager.TEAM_TO_PLAYER.clear();
         GameManager.TEAM_TO_PLAYER.putAll(opAllPlayerChosenPacket.team2Players);
+        GameManager.PLAYER_TO_TEAM.clear();
+        opAllPlayerChosenPacket.team2Players.forEach((direction, uuids) -> uuids.forEach(uuid -> GameManager.PLAYER_TO_TEAM.put(uuid, direction)));
         if (Minecraft.getInstance().screen instanceof OpScreen opScreen) {
             opScreen.update();
         }
@@ -140,20 +144,14 @@ public class UtilC {
                         false
                 );
         HudManager.add(new VictoryHUD(victoryPacket.victory));
-        TaskHelper.addClientTask(ClientGameManager::end, 200);
+        UtilC.delay(ClientGameManager::end, 10);
     }
 
     public static void handleRandomEventPacket(RandomEventPacket randomEventPacket, IPayloadContext context) {
         GameManager.event = randomEventPacket.event;
-        if (context.flow() == PacketFlow.CLIENTBOUND) {
-            TaskHelper.addClientTask(() -> {
-                GameManager.event = null;
-            }, randomEventPacket.event.time * 20);
-        } else {
-            TaskHelper.addServerTask(() -> {
-                GameManager.event = null;
-            }, randomEventPacket.event.time * 20);
-        }
+        UtilC.delay(() -> {
+            GameManager.event = null;
+        }, randomEventPacket.event.time);
         HudManager.addOrReplaceIfSameClassExist(new AutoCloseHintHUD("出现扰动！",
                 switch (randomEventPacket.event) {
                     case FOG -> "迷雾重重";
@@ -168,7 +166,7 @@ public class UtilC {
                 switch (randomEventPacket.event) {
                     case FOG -> "核心将会在周围生成迷雾来保护自己（60秒）";
                     case RANDOM_GRAVITY -> {
-                        var dir = Direction.values()[Minecraft.getInstance().player.getUUID().hashCode() / 6];
+                        var dir = Direction.values()[Mth.abs(Minecraft.getInstance().player.getUUID().hashCode()) / 6];
                         yield "重力即将转向 " + switch (dir) {
                             case DOWN -> "下（黑）";
                             case UP -> "上（橙）";
@@ -183,7 +181,15 @@ public class UtilC {
                     case CORE_REVIVE -> "跟着粒子指引找到备用核心，带回己方区域并放置";
                     case ULTRA_BOUNCE -> "没有摔落伤害，弹！弹！弹！（60秒）";
                     case HIGH_KNOCKBACK -> "击退增强500%（60秒）";
-                    case RESPAWN_BEACON -> "跟着粒子找到重生信标，放置在任何地方！（60秒）";
+                    case RESPAWN_BEACON -> "跟着粒子找到重生信标，放置在你想要的地方";
                 }));
+    }
+
+    public static void delay(Runnable runnable, int delay) {
+        CompletableFuture
+                .runAsync(
+                        () -> Minecraft.getInstance().execute(runnable),
+                        CompletableFuture.delayedExecutor(delay, TimeUnit.SECONDS)
+                );
     }
 }
