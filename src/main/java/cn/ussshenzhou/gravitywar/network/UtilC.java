@@ -117,6 +117,18 @@ public class UtilC {
 
     public static void handleSubtitlePacket(SubtitlePacket subtitlePacket, IPayloadContext context) {
         HudManager.addOrReplaceIfSameClassExist(new SubtitleHUD(subtitlePacket.message));
+        var player = context.player();
+        player.level()
+                .playLocalSound(
+                        player.getX(),
+                        player.getY(),
+                        player.getZ(),
+                        SoundEvents.EXPERIENCE_ORB_PICKUP,
+                        SoundSource.PLAYERS,
+                        0.5F,
+                        1,
+                        false
+                );
     }
 
     public static void handleTimeCheckPacket(TimeCheckPacket timeCheckPacket) {
@@ -178,10 +190,10 @@ public class UtilC {
                     }
                     case LOW_GRAVITY -> "六分之一重力（60秒）";
                     case FIREBALL -> "避开从太阳飞来的火球！（30秒）";
-                    case CORE_REVIVE -> "跟着粒子指引找到备用核心，带回己方区域并放置";
+                    case CORE_REVIVE -> "跟着粒子指引找到备用核心，并带回己方区域";
                     case ULTRA_BOUNCE -> "没有摔落伤害，弹！弹！弹！（60秒）";
                     case HIGH_KNOCKBACK -> "击退增强500%（60秒）";
-                    case RESPAWN_BEACON -> "跟着粒子找到重生信标，放置在你想要的地方";
+                    case RESPAWN_BEACON -> "跟着粒子指引找到重生信标，放置在你想要的地方";
                 }));
     }
 

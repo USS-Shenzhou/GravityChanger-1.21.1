@@ -17,7 +17,9 @@ import cn.ussshenzhou.madparticle.particle.enums.SpriteFrom;
 import cn.ussshenzhou.t88.config.ConfigHelper;
 import cn.ussshenzhou.t88.network.NetworkHelper;
 import cn.ussshenzhou.t88.task.TaskHelper;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -30,7 +32,12 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.projectile.LargeFireball;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.ItemLore;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BarrelBlockEntity;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
@@ -50,6 +57,7 @@ import static cn.ussshenzhou.gravitywar.game.ClientGameManager.*;
  */
 public abstract class MatchManager {
     private int tick = 0;
+    private BlockPos poi = null;
 
     public void startServer() {
         phasePrep();
@@ -136,13 +144,29 @@ public abstract class MatchManager {
                         }, event.time);
                     }
                     case RESPAWN_BEACON -> {
-                        //TODO
+                        var random = ThreadLocalRandom.current();
+                        var pos = new BlockPos(random.nextInt(256) - 128, random.nextInt(256) - 128, random.nextInt(256) - 128);
+                        poi = pos;
+                        getLevel().setBlock(pos, Blocks.BARREL.defaultBlockState(), 1 | 2);
+                        BarrelBlockEntity barrelBlockEntity = (BarrelBlockEntity) getLevel().getBlockEntity(pos);
+                        var item = new ItemStack(Items.BEACON);
+                        item.set(DataComponents.ITEM_NAME, Component.literal("价值3000分的复活信标"));
+                        item.set(DataComponents.LORE, new ItemLore(List.of(Component.literal("放置于地图的任何地方，确保周围有足够的空间。\n立即复活等待中的队友，并持续作为队伍的优先复活点。"))));
+                        barrelBlockEntity.setItem(0, item);
                     }
                     case FIREBALL -> {
                         //none
                     }
                     case CORE_REVIVE -> {
-                        //TODO
+                        var random = ThreadLocalRandom.current();
+                        var pos = new BlockPos(random.nextInt(256) - 128, random.nextInt(256) - 128, random.nextInt(256) - 128);
+                        poi = pos;
+                        getLevel().setBlock(pos, Blocks.BARREL.defaultBlockState(), 1 | 2);
+                        BarrelBlockEntity barrelBlockEntity = (BarrelBlockEntity) getLevel().getBlockEntity(pos);
+                        var item = new ItemStack(Items.END_CRYSTAL);
+                        item.set(DataComponents.ITEM_NAME, Component.literal("备用隐藏能源").withColor(0xFF6C14));
+                        item.set(DataComponents.LORE, new ItemLore(List.of(Component.literal("带回并放置于你的队伍对应的区域"))));
+                        barrelBlockEntity.setItem(0, item);
                     }
                     case HIGH_KNOCKBACK -> {
                         //none
@@ -167,6 +191,14 @@ public abstract class MatchManager {
             largefireball.setPos(0, 0, 0);
             getLevel().playSeededSound(null, 0, 0, 0, SoundEvents.GHAST_SHOOT, SoundSource.BLOCKS, 1, 1, 42L);
             getLevel().addFreshEntity(largefireball);
+        }
+
+        if (poi != null && event == RandomEvent.RESPAWN_BEACON || event == RandomEvent.CORE_REVIVE) {
+            var entity = getLevel().getBlockEntity(poi);
+            if (entity instanceof BarrelBlockEntity e && e.hasAnyOf(Set.of(Items.BEACON, Items.END_CRYSTAL))) {
+                getServer().getCommands().performPrefixedCommand(getServer().createCommandSourceStack(),
+                        "mp minecraft:ash RANDOM 300 TRUE 2 ~ ~ ~ 0.0 0.0 0.0 0.0 0.0 0.0 0.25 0.25 0.25 FALSE 0 0 0 1.0 1.0 0.0 0.0 0 0 0 0 0.00001 FALSE 0 0 INSTANCED 0.000 0.923 0.946 6 1 1 LINEAR 1.00 4.00 LINEAR @a {\"indexed\":1,\"tenet\":1}");
+            }
         }
     }
 

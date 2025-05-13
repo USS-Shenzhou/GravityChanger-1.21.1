@@ -11,9 +11,9 @@ public enum RandomEvent {
     FOG(60),
     RANDOM_GRAVITY(100),
     LOW_GRAVITY(60),
-    RESPAWN_BEACON(60),
+    RESPAWN_BEACON(100),
     FIREBALL(30),
-    CORE_REVIVE(60),
+    CORE_REVIVE(100),
     HIGH_KNOCKBACK(60),
     ULTRA_BOUNCE(60);
 

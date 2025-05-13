@@ -1,6 +1,7 @@
 package cn.ussshenzhou.gravitywar.game;
 
 import cn.ussshenzhou.gravitywar.entity.CoreEntity;
+import cn.ussshenzhou.gravitywar.entity.ModEntities;
 import cn.ussshenzhou.gravitywar.network.UtilS;
 import cn.ussshenzhou.gravitywar.network.s2c.*;
 import cn.ussshenzhou.gravitywar.util.DirectionHelper;
@@ -14,6 +15,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
@@ -22,7 +24,9 @@ import net.minecraft.world.entity.item.FallingBlockEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Blocks;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
@@ -30,6 +34,7 @@ import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingKnockBackEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.entity.player.UseItemOnBlockEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
@@ -291,13 +296,18 @@ public class ServerGameManager extends GameManager {
                 getPlayerS(event.getEntity().getUUID()).ifPresent(p -> {
                     switch (GameManager.mode) {
                         case CORE, SIEGE -> {
-                            var posList = StreamSupport.stream(getLevel().getEntities().getAll().spliterator(), false)
-                                    .filter(entity -> entity instanceof CoreEntity)
-                                    .filter(core -> DirectionHelper.getPyramidRegion(core.position()) == team)
-                                    .toList();
-
-                            var pos = posList.get(ThreadLocalRandom.current().nextInt(posList.size()));
-                            teleportWithDiffuse(p, pos.blockPosition());
+                            if (beaconPos != null && beaconTeam == team && getLevel().getBlockState(beaconPos).getBlock() == Blocks.BEACON) {
+                                teleportWithDiffuse(p, beaconPos);
+                            } else {
+                                var posList = StreamSupport.stream(getLevel().getEntities().getAll().spliterator(), false)
+                                        .filter(entity -> entity instanceof CoreEntity)
+                                        .filter(core -> DirectionHelper.getPyramidRegion(core.position()) == team)
+                                        .toList();
+                                if (!posList.isEmpty()) {
+                                    var pos = posList.get(ThreadLocalRandom.current().nextInt(posList.size()));
+                                    teleportWithDiffuse(p, pos.blockPosition());
+                                }
+                            }
                         }
                         case INTRUDER -> {
                             var posList = getConfig().spawnPos.get(team);
@@ -329,6 +339,47 @@ public class ServerGameManager extends GameManager {
     public static void cancelFallenDamage(LivingFallEvent event) {
         if (GameManager.event == RandomEvent.ULTRA_BOUNCE) {
             event.setDamageMultiplier(0);
+        }
+    }
+
+    public static BlockPos beaconPos = null;
+    public static Direction beaconTeam = null;
+
+    @SubscribeEvent
+    public static void reviveBeacon(UseItemOnBlockEvent event) {
+        if (event.getItemStack().getItem() == Items.BEACON
+                && event.getUsePhase() == UseItemOnBlockEvent.UsePhase.ITEM_BEFORE_BLOCK
+                && event.getCancellationResult() == ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION
+                && event.getPlayer() != null) {
+            if (PLAYER_TO_TEAM.containsKey(event.getPlayer().getUUID())) {
+                beaconPos = new BlockPos(event.getPos());
+                beaconTeam = PLAYER_TO_TEAM.get(event.getPlayer().getUUID());
+                TEAM_TO_PLAYER.get(beaconTeam).stream()
+                        .map(ServerGameManager::getPlayerS)
+                        .filter(Optional::isPresent)
+                        .map(Optional::get)
+                        .filter(ServerPlayer::isSpectator)
+                        .forEach(player -> {
+                            player.setGameMode(GameType.SURVIVAL);
+                            player.teleportTo(beaconPos.getX() + 0.5, beaconPos.getY() + 0.5, beaconPos.getZ() + 0.5);
+                        });
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public static void reviveCore(UseItemOnBlockEvent event) {
+        if (event.getItemStack().getItem() == Items.END_CRYSTAL
+                && event.getUsePhase() == UseItemOnBlockEvent.UsePhase.ITEM_BEFORE_BLOCK
+                && event.getCancellationResult() == ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION
+                && event.getPlayer() != null) {
+            event.setCanceled(true);
+            event.getItemStack().shrink(1);
+            var pos = event.getPos();
+            var core = ModEntities.CORE_ENTITY_TYPE.get().create(ServerGameManager.getLevel());
+            core.setPos(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
+            ServerGameManager.getLevel().addFreshEntity(core);
+            NetworkHelper.sendToAllPlayers(new SubtitlePacket(DirectionHelper.getName(DirectionHelper.getPyramidRegion(pos)) + " 已激活新核心"));
         }
     }
 }
