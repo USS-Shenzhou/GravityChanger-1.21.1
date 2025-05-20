@@ -44,10 +44,9 @@ public class TradeHelper {
 
     //-----Eastern Eggs-----
 
-    public static ItemStack LAVA_BOTTLE = null;
+    private static ItemStack LAVA_BOTTLE = null;
 
-    @SubscribeEvent
-    public static void justInit(PlayerEvent.PlayerLoggedInEvent event) {
+    public static ItemStack getLavaBottle() {
         if (LAVA_BOTTLE == null) {
             LAVA_BOTTLE = new ItemStack(ModItems.LAVA_BOTTLE.get());
             LAVA_BOTTLE.set(DataComponents.POTION_CONTENTS, new PotionContents(Optional.empty(), Optional.of(0x00ff9900), List.of(
@@ -56,6 +55,7 @@ public class TradeHelper {
             )));
             LAVA_BOTTLE.set(DataComponents.ITEM_NAME, Component.literal("一小瓶热腾腾的饮料").withColor(0xFF6C14));
         }
+        return LAVA_BOTTLE;
     }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")

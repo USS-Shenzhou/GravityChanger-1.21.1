@@ -77,9 +77,11 @@ public abstract class MatchManager {
 
     public void phasePrep() {
         var pkt = new ChangePhasePacket(MatchPhase.PREP);
+        phase = MatchPhase.PREP;
         forEachS(p -> {
             NetworkHelper.sendToPlayer(p, pkt);
             p.load(new CompoundTag());
+            p.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 200, 1, false, false));
         });
     }
 
@@ -304,7 +306,6 @@ public abstract class MatchManager {
                     var core = ModEntities.CORE_ENTITY_TYPE.get().create(ServerGameManager.getLevel());
                     core.setPos(p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5);
                     ServerGameManager.getLevel().addFreshEntity(core);
-                    core.addEffect(new MobEffectInstance(MobEffects.GLOWING, -1, 0, false, false));
                 });
             });
         }

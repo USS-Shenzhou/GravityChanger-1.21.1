@@ -40,7 +40,7 @@ public class UtilS {
         CompletableFuture
                 .runAsync(
                         () -> getServer().execute(runnable),
-                        CompletableFuture.delayedExecutor(delay, TimeUnit.MILLISECONDS)
+                        CompletableFuture.delayedExecutor(delay, TimeUnit.SECONDS)
                 );
     }
 }

@@ -49,20 +49,39 @@ public class CoreEntity extends Mob {
             AddParticleHelper.addParticleClient(
                     ParticleTypes.WHITE_ASH,
                     SpriteFrom.RANDOM,
-                    40,
+                    35,
                     InheritableBoolean.TRUE,
                     (int) ((getMaxHealth() - getHealth()) / getMaxHealth() * 10),
                     pos.x, pos.y, pos.z, 0.2f, 0.2f, 0.2f,
                     0, 0, 0, 0.1f, 0.1f, 0.1f,
-                    0.985f, 0.0f, InheritableBoolean.FALSE, 0, 0, 0, 0, 0,
+                    0.98f, 0.0f, InheritableBoolean.FALSE, 0, 0, 0, 0, 0,
                     InheritableBoolean.FALSE, 0, 0, ParticleRenderTypes.INSTANCED,
                     color.x, color.y, color.z,
                     1, 1, ChangeMode.LINEAR,
-                    1.75f, 1.75f, ChangeMode.LINEAR,
+                    1.25f, 1.25f, ChangeMode.LINEAR,
                     false, null,
                     0.01f,
                     0, 0, 0, 0,
                     1,
+                    tag
+            );
+            AddParticleHelper.addParticleClient(
+                    ParticleTypes.WHITE_ASH,
+                    SpriteFrom.RANDOM,
+                    160,
+                    InheritableBoolean.TRUE,
+                    1,
+                    pos.x, pos.y, pos.z, 0.2f, 0.2f, 0.2f,
+                    0, 0, 0, 0.1f, 0.1f, 0.1f,
+                    0.995f, 0.0f, InheritableBoolean.FALSE, 0, 0, 0, 0, 0,
+                    InheritableBoolean.FALSE, 0, 0, ParticleRenderTypes.INSTANCED,
+                    color.x, color.y, color.z,
+                    1, 1, ChangeMode.LINEAR,
+                    2f, 2f, ChangeMode.LINEAR,
+                    false, null,
+                    0.01f,
+                    0, 0, 0, 0,
+                    3,
                     tag
             );
         }

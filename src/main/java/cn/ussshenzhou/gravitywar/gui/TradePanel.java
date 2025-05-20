@@ -90,7 +90,7 @@ public class TradePanel extends TVerticalScrollContainer {
 
         if (TradeHelper.isKaMu(Minecraft.getInstance().player)) {
             assertVoid();
-            add(new SelfTradeButton(new ItemStack(COBBLESTONE, 8), TradeHelper.LAVA_BOTTLE.copy())
+            add(new SelfTradeButton(new ItemStack(COBBLESTONE, 8), TradeHelper.getLavaBottle().copy())
                     .setTooltip(Tooltip.create(Component.literal("§8上古失落的彩蛋\n§6家乡特产。\n§7只有你能进行此交易")))
             );
         }

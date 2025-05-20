@@ -132,6 +132,7 @@ public class UtilC {
     }
 
     public static void handleTimeCheckPacket(TimeCheckPacket timeCheckPacket) {
+        HudManager.addIfSameClassNotExist(new CoreModeHUD());
         HudManager.getChildren()
                 .forEach(t -> {
                     if (t instanceof CoreModeHUD coreModeHUD) {

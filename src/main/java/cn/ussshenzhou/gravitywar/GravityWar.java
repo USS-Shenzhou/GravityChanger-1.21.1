@@ -23,6 +23,9 @@ public class GravityWar {
         if (ModList.get().isLoaded("sodium")) {
             throw new ModLoadingException(ModLoadingIssue.error("不支持Sodium"));
         }
+        if (ModList.get().isLoaded("embeddium")) {
+            throw new ModLoadingException(ModLoadingIssue.error("不支持Embeddium"));
+        }
         ModItems.ITEMS.register(modEventBus);
         ModEntities.ENTITY_TYPES.register(modEventBus);
     }

@@ -10,6 +10,7 @@ import cn.ussshenzhou.gravitywar.util.TradeHelper;
 import cn.ussshenzhou.t88.config.ConfigHelper;
 import cn.ussshenzhou.t88.network.NetworkHelper;
 import cn.ussshenzhou.t88.task.TaskHelper;
+import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.MinecraftServer;
@@ -27,6 +28,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.portal.DimensionTransition;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
@@ -34,6 +37,7 @@ import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingKnockBackEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerRespawnPositionEvent;
 import net.neoforged.neoforge.event.entity.player.UseItemOnBlockEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
@@ -147,7 +151,7 @@ public class ServerGameManager extends GameManager {
         UtilS.delayMs(() -> {
             NetworkHelper.sendToAllPlayers(new SubtitlePacket("对战将于5秒后开始"));
             NetworkHelper.sendToAllPlayers(new DingPacket());
-        }, 500);
+        }, 5);
         //handle neutral players
         if (mode != MatchMode.SIEGE) {
             var neutralPlayers = getServer().getPlayerList().getPlayers().stream()
@@ -207,7 +211,6 @@ public class ServerGameManager extends GameManager {
             PLAYER_TO_TEAM.forEach((uuid, direction) -> {
                 getPlayerS(uuid).ifPresent(p -> {
                     GravityChangerAPIProxy.setBaseGravityDirection(p, Direction.DOWN);
-                    p.setGameMode(GameType.ADVENTURE);
                 });
             });
             NetworkHelper.sendToAllPlayers(new TeamPlayerNumberPacket(new int[6]));
@@ -280,20 +283,33 @@ public class ServerGameManager extends GameManager {
             NetworkHelper.sendToPlayer((ServerPlayer) player, new TimeCheckPacket(startMs));
             ((ServerPlayer) player).setGameMode(GameType.SURVIVAL);
         }
-        if (phase == MatchPhase.CHOOSE && !player.hasPermissions(4)) {
-            ((ServerPlayer) player).setGameMode(GameType.ADVENTURE);
-        }
+    }
+
+    @SubscribeEvent
+    public static void revivePos(PlayerRespawnPositionEvent event) {
+        var old = event.getDimensionTransition();
+        event.setDimensionTransition(new DimensionTransition(
+                old.newLevel(),
+                event.getEntity().position(),
+                new Vec3(0, 0, 0),
+                event.getEntity().getYRot(),
+                event.getEntity().getXRot(),
+                false,
+                DimensionTransition.DO_NOTHING
+        ));
     }
 
     @SubscribeEvent
     public static void revive(PlayerEvent.PlayerRespawnEvent event) {
-        if (PLAYER_TO_TEAM.containsKey(event.getEntity().getUUID()) && phase != MatchPhase.CHOOSE) {
-            var team = PLAYER_TO_TEAM.get(event.getEntity().getUUID());
-            var deathTime = PLAYER_DEATH.compute(event.getEntity().getUUID(), (uuid, integer) -> integer == null ? 0 : ++integer) * 10;
-            NetworkHelper.sendToPlayer((ServerPlayer) event.getEntity(), new SubtitlePacket("将于 " + deathTime + " 秒后复活"));
-            ((ServerPlayer) event.getEntity()).setGameMode(GameType.SPECTATOR);
+        Player player = event.getEntity();
+        if (PLAYER_TO_TEAM.containsKey(player.getUUID()) && phase != MatchPhase.CHOOSE) {
+            var team = PLAYER_TO_TEAM.get(player.getUUID());
+            GravityChangerAPIProxy.setBaseGravityDirection(player, team);
+            var deathTime = PLAYER_DEATH.compute(player.getUUID(), (uuid, integer) -> integer == null ? 0 : ++integer) * 10;
+            NetworkHelper.sendToPlayer((ServerPlayer) player, new SubtitlePacket("将于 " + deathTime + " 秒后复活"));
+            ((ServerPlayer) player).setGameMode(GameType.SPECTATOR);
             UtilS.delay(() -> {
-                getPlayerS(event.getEntity().getUUID()).ifPresent(p -> {
+                getPlayerS(player.getUUID()).ifPresent(p -> {
                     switch (GameManager.mode) {
                         case CORE, SIEGE -> {
                             if (beaconPos != null && beaconTeam == team && getLevel().getBlockState(beaconPos).getBlock() == Blocks.BEACON) {
