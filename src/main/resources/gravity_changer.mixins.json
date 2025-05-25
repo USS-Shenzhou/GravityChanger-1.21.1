@@ -53,6 +53,7 @@
     "WitchMixin",
     "WitherBossMixin",
     "debug.MixinEntity_Debug",
+    "fall_distance.ServerGamePacketListenerImplMixin",
     "fall_distance.ServerPlayerMixin_FallDistance",
     "item.BehaviorUtilsMixin"
   ],

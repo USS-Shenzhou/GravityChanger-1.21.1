@@ -8,16 +8,22 @@ import gravity_changer.api.GravityChangerAPI;
 import gravity_changer.util.RotationUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -41,11 +47,92 @@ public abstract class LivingEntityMixin extends Entity {
     
     @Shadow
     public abstract float getViewYRot(float tickDelta);
-    
-    
+
+
+    @Shadow
+    public abstract boolean hasEffect(Holder<MobEffect> holder);
+
+    @Shadow
+    public abstract @Nullable MobEffectInstance getEffect(Holder<MobEffect> holder);
+
     public LivingEntityMixin(EntityType<?> type, Level world) {
         super(type, world);
     }
+
+
+    /*@Redirect(
+            method = "travel",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/entity/LivingEntity;setDeltaMovement(DDD)V", ordinal = 2)
+    )
+    private void redirect_delta_0(LivingEntity instance, double dx, double dy, double dz, @Local(ordinal = 1) Vec3 vec, @Local(ordinal = 0) double d, @Local BlockPos blockPos) {
+        double g = vec.y;
+        if (this.hasEffect(MobEffects.LEVITATION)) {
+            g += (0.05 * (double) (this.getEffect(MobEffects.LEVITATION).getAmplifier() + 1) - vec.y) * 0.2;
+        } else if (this.level().isClientSide && !this.level().hasChunkAt(blockPos)) {
+            if (this.getY() > (double) this.level().getMinBuildHeight()) {
+                g = -0.1;
+            } else {
+                g = (double) 0.0F;
+            }
+        } else {
+            g -= d;
+        }
+        //noinspection ConstantValue
+        if (!((Object) this instanceof Player)) {
+            this.setDeltaMovement(dx, dy, dz);
+            return;
+        }
+        Direction gravityDirection = GravityChangerAPI.getGravityDirection(this);
+        switch (gravityDirection) {
+            case DOWN -> this.setDeltaMovement(vec.x, g, vec.z);
+            case UP -> instance.setDeltaMovement(vec.x, -g, vec.z);
+            case NORTH -> instance.setDeltaMovement(vec.x, vec.y, g);
+            case SOUTH -> instance.setDeltaMovement(vec.x, vec.y, -g);
+            case WEST -> instance.setDeltaMovement(-g, vec.y, vec.z);
+            case EAST -> instance.setDeltaMovement(g, vec.y, vec.z);
+
+        }
+    }
+
+    @Redirect(
+            method = "travel",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/entity/LivingEntity;setDeltaMovement(DDD)V", ordinal = 3)
+    )
+    private void redirect_delta_1(LivingEntity instance, double dx, double dy, double dz, @Local(ordinal = 1) Vec3 vec, @Local double d, @Local(ordinal = 1) float f, @Local BlockPos blockPos) {
+        double g = vec.y;
+        if (this.hasEffect(MobEffects.LEVITATION)) {
+            g += (0.05 * (double) (this.getEffect(MobEffects.LEVITATION).getAmplifier() + 1) - vec.y) * 0.2;
+        } else if (this.level().isClientSide && !this.level().hasChunkAt(blockPos)) {
+            if (this.getY() > (double) this.level().getMinBuildHeight()) {
+                g = -0.1;
+            } else {
+                g = (double) 0.0F;
+            }
+        } else {
+            g -= d;
+        }
+        //noinspection ConstantValue
+        if (!((Object) this instanceof Player)) {
+            this.setDeltaMovement(dx, dy, dz);
+            return;
+        }
+        Direction gravityDirection = GravityChangerAPI.getGravityDirection(this);
+        switch (gravityDirection) {
+            case DOWN -> this.setDeltaMovement(vec.x * f, g * 0.98, vec.z * f);
+            case UP -> instance.setDeltaMovement(vec.x * f, -g * 0.98, vec.z * f);
+            case NORTH -> instance.setDeltaMovement(vec.x * f, vec.y * f, g * 0.98);
+            case SOUTH -> instance.setDeltaMovement(vec.x * f, vec.y * f, -g * 0.98);
+            case WEST -> instance.setDeltaMovement(-g * 0.98, vec.y * f, vec.z * f);
+            case EAST -> instance.setDeltaMovement(g * 0.98, vec.y * f, vec.z * f);
+
+        }
+    }*/
+
+
     
     @Redirect(
         method = "travel(Lnet/minecraft/world/phys/Vec3;)V",
