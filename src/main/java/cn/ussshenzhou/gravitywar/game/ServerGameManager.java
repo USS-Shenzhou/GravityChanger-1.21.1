@@ -9,8 +9,6 @@ import cn.ussshenzhou.gravitywar.util.GravityChangerAPIProxy;
 import cn.ussshenzhou.gravitywar.util.TradeHelper;
 import cn.ussshenzhou.t88.config.ConfigHelper;
 import cn.ussshenzhou.t88.network.NetworkHelper;
-import cn.ussshenzhou.t88.task.TaskHelper;
-import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.MinecraftServer;
@@ -71,6 +69,9 @@ public class ServerGameManager extends GameManager {
     }
 
     public static void pickTeam(ServerPlayer player, Direction team) {
+        if (phase != MatchPhase.CHOOSE) {
+            return;
+        }
         if (PLAYER_TO_TEAM.containsKey(player.getUUID())) {
             PLAYER_TO_TEAM.remove(player.getUUID());
             TEAM_TO_PLAYER.values().forEach(set -> set.remove(player.getUUID()));
@@ -204,6 +205,7 @@ public class ServerGameManager extends GameManager {
     }
 
     public static void end() {
+        PLAYER_DEATH.clear();
         manager = null;
         UtilS.delay(() -> {
             var pkt = new ChangePhasePacket(MatchPhase.CHOOSE);
@@ -314,6 +316,7 @@ public class ServerGameManager extends GameManager {
                         case CORE, SIEGE -> {
                             if (beaconPos != null && beaconTeam == team && getLevel().getBlockState(beaconPos).getBlock() == Blocks.BEACON) {
                                 teleportWithDiffuse(p, beaconPos);
+                                p.setGameMode(GameType.SURVIVAL);
                             } else {
                                 var posList = StreamSupport.stream(getLevel().getEntities().getAll().spliterator(), false)
                                         .filter(entity -> entity instanceof CoreEntity)
@@ -322,6 +325,7 @@ public class ServerGameManager extends GameManager {
                                 if (!posList.isEmpty()) {
                                     var pos = posList.get(ThreadLocalRandom.current().nextInt(posList.size()));
                                     teleportWithDiffuse(p, pos.blockPosition());
+                                    p.setGameMode(GameType.SURVIVAL);
                                 }
                             }
                         }
@@ -331,7 +335,6 @@ public class ServerGameManager extends GameManager {
                             p.teleportTo(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
                         }
                     }
-                    p.setGameMode(GameType.SURVIVAL);
                 });
             }, deathTime);
         }

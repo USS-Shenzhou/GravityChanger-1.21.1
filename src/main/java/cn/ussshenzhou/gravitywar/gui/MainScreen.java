@@ -3,6 +3,7 @@ package cn.ussshenzhou.gravitywar.gui;
 import cn.ussshenzhou.gravitywar.GravityWar;
 import cn.ussshenzhou.gravitywar.game.ClientGameManager;
 import cn.ussshenzhou.gravitywar.game.GameManager;
+import cn.ussshenzhou.gravitywar.game.MatchPhase;
 import cn.ussshenzhou.gravitywar.network.c2s.PickTeamPacket;
 import cn.ussshenzhou.gravitywar.util.ColorHelper;
 import cn.ussshenzhou.t88.gui.advanced.TLabelButton;
@@ -97,6 +98,14 @@ public class MainScreen extends TScreen {
         title0.setFontSize(14);
         this.add(title1);
         update();
+    }
+
+    @Override
+    public void tick() {
+        if (GameManager.phase != MatchPhase.CHOOSE) {
+            this.onClose(true);
+        }
+        super.tick();
     }
 
     @Override

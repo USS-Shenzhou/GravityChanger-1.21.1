@@ -82,6 +82,7 @@ public abstract class MatchManager {
             NetworkHelper.sendToPlayer(p, pkt);
             p.load(new CompoundTag());
             p.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 200, 1, false, false));
+            p.addEffect(new MobEffectInstance(MobEffects.SATURATION, 200, 1, false, false));
         });
     }
 
@@ -154,7 +155,16 @@ public abstract class MatchManager {
                         var item = new ItemStack(Items.BEACON);
                         item.set(DataComponents.ITEM_NAME, Component.literal("价值3000分的复活信标"));
                         item.set(DataComponents.LORE, new ItemLore(List.of(Component.literal("放置于地图的任何地方，确保周围有足够的空间。\n立即复活等待中的队友，并持续作为队伍的优先复活点。"))));
-                        barrelBlockEntity.setItem(0, item);
+                        if (barrelBlockEntity != null) {
+                            barrelBlockEntity.setItem(0, item);
+                        } else {
+                            UtilS.delay(() -> getServer().execute(() -> {
+                                BarrelBlockEntity b = (BarrelBlockEntity) getLevel().getBlockEntity(pos);
+                                if (b != null) {
+                                    b.setItem(0, item);
+                                }
+                            }), 1);
+                        }
                     }
                     case FIREBALL -> {
                         //none
@@ -168,7 +178,16 @@ public abstract class MatchManager {
                         var item = new ItemStack(Items.END_CRYSTAL);
                         item.set(DataComponents.ITEM_NAME, Component.literal("备用隐藏能源").withColor(0xFF6C14));
                         item.set(DataComponents.LORE, new ItemLore(List.of(Component.literal("带回并放置于你的队伍对应的区域"))));
-                        barrelBlockEntity.setItem(0, item);
+                        if (barrelBlockEntity != null) {
+                            barrelBlockEntity.setItem(0, item);
+                        } else {
+                            UtilS.delay(() -> getServer().execute(() -> {
+                                BarrelBlockEntity b = (BarrelBlockEntity) getLevel().getBlockEntity(pos);
+                                if (b != null) {
+                                    b.setItem(0, item);
+                                }
+                            }), 1);
+                        }
                     }
                     case HIGH_KNOCKBACK -> {
                         //none

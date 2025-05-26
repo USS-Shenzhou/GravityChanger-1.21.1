@@ -1,14 +1,20 @@
 package cn.ussshenzhou.gravitywar.entity;
 
+import cn.ussshenzhou.gravitywar.game.GameManager;
+import cn.ussshenzhou.gravitywar.game.MatchManager;
+import cn.ussshenzhou.gravitywar.game.ServerGameManager;
 import cn.ussshenzhou.gravitywar.util.ColorHelper;
 import cn.ussshenzhou.gravitywar.util.DirectionHelper;
+import cn.ussshenzhou.gravitywar.util.GravityChangerAPIProxy;
 import cn.ussshenzhou.madparticle.api.AddParticleHelper;
 import cn.ussshenzhou.madparticle.command.inheritable.InheritableBoolean;
 import cn.ussshenzhou.madparticle.particle.enums.ChangeMode;
 import cn.ussshenzhou.madparticle.particle.enums.ParticleRenderTypes;
 import cn.ussshenzhou.madparticle.particle.enums.SpriteFrom;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.damagesource.DamageSource;
@@ -96,13 +102,40 @@ public class CoreEntity extends Mob {
                     level().damageSources().explosion(getLastHurtByMob(), getLastHurtByMob()),
                     new SimpleExplosionDamageCalculator(true, true, Optional.of(0.5f), Optional.empty()),
                     this.position(),
-                    4,
+                    3,
                     false,
                     Level.ExplosionInteraction.BLOCK
             );
-        }
-        if (this.level().isClientSide) {
-            level().playLocalSound(this, SoundEvents.BEACON_DEACTIVATE, SoundSource.BLOCKS, 0.8f, 1.3f);
+            var dir = DirectionHelper.getPyramidRegion(this.position());
+            ServerGameManager.forEachS(p -> {
+                if (p.position().distanceTo(this.position()) <= 20) {
+                    GravityChangerAPIProxy.setBaseGravityDirection(p, dir);
+                }
+            });
+            var color = ColorHelper.getRGB3f(DirectionHelper.getPyramidRegion(this.position()));
+            var tag = new CompoundTag();
+            var pos = this.getEyePosition();
+            ((ServerLevel) level()).playSeededSound(null, this, BuiltInRegistries.SOUND_EVENT.wrapAsHolder(SoundEvents.BEACON_DEACTIVATE), SoundSource.BLOCKS, 0.8f, 1.3f, 42L);
+            AddParticleHelper.addParticleServer(
+                    ((ServerLevel) level()),
+                    ParticleTypes.WHITE_ASH,
+                    SpriteFrom.RANDOM,
+                    40,
+                    InheritableBoolean.TRUE,
+                    400,
+                    pos.x, pos.y, pos.z, 0.2f, 0.2f, 0.2f,
+                    0, 0, 0, 0.8f, 0.8f, 0.8f,
+                    0.999f, 0.0f, InheritableBoolean.FALSE, 0, 0, 0, 0, 0,
+                    InheritableBoolean.FALSE, 0, 0, ParticleRenderTypes.INSTANCED,
+                    color.x, color.y, color.z,
+                    1, 0.2f, ChangeMode.LINEAR,
+                    2f, 2f, ChangeMode.LINEAR,
+                    false, null,
+                    0.01f,
+                    0, 0, 0, 0,
+                    4,
+                    tag
+            );
         }
         super.remove(reason);
     }

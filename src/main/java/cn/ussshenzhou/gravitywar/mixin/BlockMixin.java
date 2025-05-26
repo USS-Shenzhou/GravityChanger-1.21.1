@@ -2,6 +2,7 @@ package cn.ussshenzhou.gravitywar.mixin;
 
 import cn.ussshenzhou.gravitywar.game.GameManager;
 import cn.ussshenzhou.gravitywar.game.RandomEvent;
+import cn.ussshenzhou.gravitywar.util.GravityChangerAPIProxy;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.BlockGetter;
@@ -30,6 +31,16 @@ public class BlockMixin {
     @Unique
     private void bounceUp(Entity entity) {
         Vec3 vec3 = entity.getDeltaMovement();
-        entity.setDeltaMovement(-vec3.x * 0.8, -vec3.y * 0.8, -vec3.z * 0.8);
+        var dir = GravityChangerAPIProxy.getGravityDirection(entity);
+        if (dir != null) {
+            switch (dir) {
+                case UP, DOWN:
+                    entity.setDeltaMovement(vec3.x, -vec3.y * 0.8, vec3.z);
+                case NORTH, SOUTH:
+                    entity.setDeltaMovement(vec3.x, vec3.y, -vec3.z * 0.8);
+                case EAST, WEST:
+                    entity.setDeltaMovement(-vec3.x * 0.8, vec3.y, vec3.z);
+            }
+        }
     }
 }
