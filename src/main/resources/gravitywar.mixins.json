@@ -21,6 +21,7 @@
     "MinecraftMixin",
     "ParticleMixin",
     "PlayerTabOverlayMixin",
+    "RecipeBookComponentMixin",
     "ScreenEffectRendererMixin",
     "SectionCompilerMixin"
   ],

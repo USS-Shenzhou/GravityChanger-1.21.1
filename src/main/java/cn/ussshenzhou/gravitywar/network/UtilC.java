@@ -7,6 +7,7 @@ import cn.ussshenzhou.gravitywar.gui.*;
 import cn.ussshenzhou.gravitywar.network.s2c.*;
 import cn.ussshenzhou.t88.config.ConfigHelper;
 import cn.ussshenzhou.t88.gui.HudManager;
+import cn.ussshenzhou.t88.gui.util.LayoutHelper;
 import cn.ussshenzhou.t88.gui.widegt.TComponent;
 import cn.ussshenzhou.t88.task.TaskHelper;
 import net.minecraft.client.Minecraft;
@@ -116,7 +117,13 @@ public class UtilC {
     }
 
     public static void handleSubtitlePacket(SubtitlePacket subtitlePacket, IPayloadContext context) {
-        HudManager.addOrReplaceIfSameClassExist(new SubtitleHUD(subtitlePacket.message));
+        HudManager.addOrReplaceIfSameClassExist(new SubtitleHUD(subtitlePacket.message) {
+            @Override
+            public void layout() {
+                super.layout();
+                LayoutHelper.BBottomOfA(desc, 16, desc);
+            }
+        });
         var player = context.player();
         player.level()
                 .playLocalSound(

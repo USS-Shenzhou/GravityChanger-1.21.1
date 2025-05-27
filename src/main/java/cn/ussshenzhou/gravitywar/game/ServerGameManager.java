@@ -283,7 +283,6 @@ public class ServerGameManager extends GameManager {
                     cfg.finalPhase
             ));
             NetworkHelper.sendToPlayer((ServerPlayer) player, new TimeCheckPacket(startMs));
-            ((ServerPlayer) player).setGameMode(GameType.SURVIVAL);
         }
     }
 
@@ -303,6 +302,9 @@ public class ServerGameManager extends GameManager {
 
     @SubscribeEvent
     public static void revive(PlayerEvent.PlayerRespawnEvent event) {
+        if (phase == MatchPhase.CHOOSE) {
+            return;
+        }
         Player player = event.getEntity();
         if (PLAYER_TO_TEAM.containsKey(player.getUUID()) && phase != MatchPhase.CHOOSE) {
             var team = PLAYER_TO_TEAM.get(player.getUUID());

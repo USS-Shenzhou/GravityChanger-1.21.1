@@ -23,8 +23,8 @@ public class BlockMixin {
     @Inject(method = "updateEntityAfterFallOn", at = @At("HEAD"), cancellable = true)
     private void gwBounce(BlockGetter level, Entity entity, CallbackInfo ci) {
         if (GameManager.event == RandomEvent.ULTRA_BOUNCE) {
-            ci.cancel();
-            bounceUp(entity);
+        ci.cancel();
+        bounceUp(entity);
         }
     }
 
@@ -32,15 +32,34 @@ public class BlockMixin {
     private void bounceUp(Entity entity) {
         Vec3 vec3 = entity.getDeltaMovement();
         var dir = GravityChangerAPIProxy.getGravityDirection(entity);
-        if (dir != null) {
-            switch (dir) {
-                case UP, DOWN:
-                    entity.setDeltaMovement(vec3.x, -vec3.y * 0.8, vec3.z);
-                case NORTH, SOUTH:
-                    entity.setDeltaMovement(vec3.x, vec3.y, -vec3.z * 0.8);
-                case EAST, WEST:
-                    entity.setDeltaMovement(-vec3.x * 0.8, vec3.y, vec3.z);
-            }
-        }
+        entity.setDeltaMovement(-vec3.x, -vec3.y, -vec3.z);
+        //if (dir != null) {
+        //    switch (dir) {
+        //        case UP:
+        //            if (vec3.y > 0) {
+        //                entity.setDeltaMovement(vec3.x, -vec3.y, vec3.z);
+        //            }
+        //        case DOWN:
+        //            if (vec3.y < 0) {
+        //                entity.setDeltaMovement(vec3.x, -vec3.y, vec3.z);
+        //            }
+        //        case NORTH:
+        //            if (vec3.z < 0) {
+        //                entity.setDeltaMovement(vec3.x, vec3.y, -vec3.z);
+        //            }
+        //        case SOUTH:
+        //            if (vec3.z > 0) {
+        //                entity.setDeltaMovement(vec3.x, vec3.y, -vec3.z);
+        //            }
+        //        case EAST:
+        //            if (vec3.x > 0) {
+        //                entity.setDeltaMovement(-vec3.x, vec3.y, vec3.z);
+        //            }
+        //        case WEST:
+        //            if (vec3.x < 0) {
+        //                entity.setDeltaMovement(-vec3.x, vec3.y, vec3.z);
+        //            }
+        //    }
+        //}
     }
 }

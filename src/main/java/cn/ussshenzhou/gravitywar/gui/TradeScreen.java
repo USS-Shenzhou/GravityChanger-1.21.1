@@ -22,7 +22,8 @@ public class TradeScreen extends TScreen {
         @Override
         protected void init() {
             super.init();
-            this.children().stream().filter(renderable -> renderable instanceof ImageButton).findFirst().ifPresent(this::removeWidget);
+            var bu = this.children().stream().filter(renderable -> renderable instanceof ImageButton).findFirst();
+            bu.ifPresent(this::removeWidget);
         }
 
         @Override

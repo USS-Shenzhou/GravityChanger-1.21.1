@@ -111,7 +111,7 @@ public abstract class MatchManager {
 
         //random event
         if (phase == MatchPhase.FINAL) {
-            if (tick % (120 * 20) == 0) {
+            if (tick % (100 * 20) == 0) {
                 do {
                     event = RandomEvent.values()[ThreadLocalRandom.current().nextInt(RandomEvent.values().length)];
                 } while (event == lastEvent);
@@ -199,7 +199,7 @@ public abstract class MatchManager {
             }
             tick++;
         } else {
-            tick = 1;
+            tick = 60;
         }
         if (event == RandomEvent.FIREBALL) {
             if (FAKE_OWNER == null) {
