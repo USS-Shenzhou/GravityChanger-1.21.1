@@ -319,6 +319,7 @@ public class ServerGameManager extends GameManager {
                             if (beaconPos != null && beaconTeam == team && getLevel().getBlockState(beaconPos).getBlock() == Blocks.BEACON) {
                                 teleportWithDiffuse(p, beaconPos);
                                 p.setGameMode(GameType.SURVIVAL);
+                                p.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 20 * 5, 5, false, true));
                             } else {
                                 var posList = StreamSupport.stream(getLevel().getEntities().getAll().spliterator(), false)
                                         .filter(entity -> entity instanceof CoreEntity)
@@ -328,6 +329,7 @@ public class ServerGameManager extends GameManager {
                                     var pos = posList.get(ThreadLocalRandom.current().nextInt(posList.size()));
                                     teleportWithDiffuse(p, pos.blockPosition());
                                     p.setGameMode(GameType.SURVIVAL);
+                                    p.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 20 * 5, 5, false, true));
                                 }
                             }
                         }

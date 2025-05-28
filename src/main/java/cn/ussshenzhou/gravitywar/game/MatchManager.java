@@ -9,14 +9,13 @@ import cn.ussshenzhou.gravitywar.network.s2c.RandomEventPacket;
 import cn.ussshenzhou.gravitywar.network.s2c.TeamFailPacket;
 import cn.ussshenzhou.gravitywar.util.DirectionHelper;
 import cn.ussshenzhou.gravitywar.util.GravityChangerAPIProxy;
-import cn.ussshenzhou.madparticle.api.AddParticleHelper;
+import cn.ussshenzhou.madparticle.api.AddParticleHelperC;
 import cn.ussshenzhou.madparticle.command.inheritable.InheritableBoolean;
 import cn.ussshenzhou.madparticle.particle.enums.ChangeMode;
 import cn.ussshenzhou.madparticle.particle.enums.ParticleRenderTypes;
 import cn.ussshenzhou.madparticle.particle.enums.SpriteFrom;
 import cn.ussshenzhou.t88.config.ConfigHelper;
 import cn.ussshenzhou.t88.network.NetworkHelper;
-import cn.ussshenzhou.t88.task.TaskHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
@@ -268,7 +267,7 @@ public abstract class MatchManager {
 
     @OnlyIn(Dist.CLIENT)
     public void clientTick() {
-        AddParticleHelper.addParticleClient(
+        AddParticleHelperC.addParticleClient(
                 ParticleTypes.ASH, SpriteFrom.RANDOM,
                 400, InheritableBoolean.TRUE, 10,
                 0, 0, 0, 3.0f, 3.0f, 3.0f,
@@ -282,7 +281,7 @@ public abstract class MatchManager {
                     .filter(entity -> entity instanceof CoreEntity)
                     .forEach(entity -> {
                         var pos = entity.position();
-                        AddParticleHelper.addParticleClient(
+                        AddParticleHelperC.addParticleClient(
                                 ParticleTypes.CAMPFIRE_COSY_SMOKE, SpriteFrom.RANDOM,
                                 100, InheritableBoolean.TRUE, 15,
                                 (float) pos.x, (float) pos.y, (float) pos.z, 10.0f, 10.0f, 10.0f,

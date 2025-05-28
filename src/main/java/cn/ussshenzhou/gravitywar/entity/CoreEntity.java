@@ -1,12 +1,11 @@
 package cn.ussshenzhou.gravitywar.entity;
 
-import cn.ussshenzhou.gravitywar.game.GameManager;
-import cn.ussshenzhou.gravitywar.game.MatchManager;
 import cn.ussshenzhou.gravitywar.game.ServerGameManager;
 import cn.ussshenzhou.gravitywar.util.ColorHelper;
 import cn.ussshenzhou.gravitywar.util.DirectionHelper;
 import cn.ussshenzhou.gravitywar.util.GravityChangerAPIProxy;
-import cn.ussshenzhou.madparticle.api.AddParticleHelper;
+import cn.ussshenzhou.madparticle.api.AddParticleHelperC;
+import cn.ussshenzhou.madparticle.api.AddParticleHelperS;
 import cn.ussshenzhou.madparticle.command.inheritable.InheritableBoolean;
 import cn.ussshenzhou.madparticle.particle.enums.ChangeMode;
 import cn.ussshenzhou.madparticle.particle.enums.ParticleRenderTypes;
@@ -18,7 +17,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.damagesource.DamageSources;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -27,7 +25,6 @@ import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.SimpleExplosionDamageCalculator;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.Tags;
 
 import java.util.Optional;
 
@@ -52,7 +49,7 @@ public class CoreEntity extends Mob {
             var color = ColorHelper.getRGB3f(DirectionHelper.getPyramidRegion(this.position()));
             var tag = new CompoundTag();
             var pos = this.getEyePosition();
-            AddParticleHelper.addParticleClient(
+            AddParticleHelperC.addParticleClient(
                     ParticleTypes.WHITE_ASH,
                     SpriteFrom.RANDOM,
                     35,
@@ -71,7 +68,7 @@ public class CoreEntity extends Mob {
                     1,
                     tag
             );
-            AddParticleHelper.addParticleClient(
+            AddParticleHelperC.addParticleClient(
                     ParticleTypes.WHITE_ASH,
                     SpriteFrom.RANDOM,
                     160,
@@ -116,7 +113,7 @@ public class CoreEntity extends Mob {
             var tag = new CompoundTag();
             var pos = this.getEyePosition();
             ((ServerLevel) level()).playSeededSound(null, this, BuiltInRegistries.SOUND_EVENT.wrapAsHolder(SoundEvents.BEACON_DEACTIVATE), SoundSource.BLOCKS, 0.8f, 1.3f, 42L);
-            AddParticleHelper.addParticleServer(
+            AddParticleHelperS.addParticleServer(
                     ((ServerLevel) level()),
                     ParticleTypes.WHITE_ASH,
                     SpriteFrom.RANDOM,

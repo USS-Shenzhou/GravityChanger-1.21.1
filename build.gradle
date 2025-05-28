@@ -145,7 +145,7 @@ dependencies {
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
     //implementation("curse.maven:sodium-394468:6382651")
 
-    implementation(jarJar("cn.ussshenzhou:MadParticle:0.8.12+kamu") {
+    implementation(jarJar("cn.ussshenzhou:MadParticle:0.8.13+kamu") {
         exclude group: "curse.maven", module: "irisshaders-455508"
     })
 
