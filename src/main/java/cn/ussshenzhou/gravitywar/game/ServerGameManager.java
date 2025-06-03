@@ -52,7 +52,7 @@ import java.util.stream.StreamSupport;
 @EventBusSubscriber(bus = EventBusSubscriber.Bus.GAME)
 public class ServerGameManager extends GameManager {
 
-    protected static long startMs = 0;
+    protected static volatile long startMs = 0;
     protected static Set<Direction> teamsOnGround = new HashSet<>();
     public static final HashMap<UUID, Integer> PLAYER_DEATH = new HashMap<>();
 
@@ -154,7 +154,7 @@ public class ServerGameManager extends GameManager {
             NetworkHelper.sendToAllPlayers(new DingPacket());
         }, 5);
         //handle neutral players
-        if (mode != MatchMode.SIEGE) {
+        if (mode == MatchMode.SIEGE) {
             var neutralPlayers = getServer().getPlayerList().getPlayers().stream()
                     .filter(player -> !player.hasPermissions(2) && !PLAYER_TO_TEAM.containsKey(player.getUUID()))
                     .collect(Collectors.toSet());
@@ -269,7 +269,11 @@ public class ServerGameManager extends GameManager {
         if (player.level().isClientSide()) {
             return;
         }
-        if (PLAYER_TO_TEAM.containsKey(player.getUUID()) && phase != MatchPhase.CHOOSE) {
+        if (phase == MatchPhase.CHOOSE) {
+            GravityChangerAPIProxy.setBaseGravityDirection(player, Direction.DOWN);
+            return;
+        }
+        if (PLAYER_TO_TEAM.containsKey(player.getUUID())) {
             var cfg = ConfigHelper.getConfigRead(GravityWarConfig.class);
             NetworkHelper.sendToPlayer((ServerPlayer) player, new DingPacket());
             NetworkHelper.sendToPlayer((ServerPlayer) player, new StartCPacket(
@@ -282,12 +286,15 @@ public class ServerGameManager extends GameManager {
                     cfg.battlePhase,
                     cfg.finalPhase
             ));
-            NetworkHelper.sendToPlayer((ServerPlayer) player, new TimeCheckPacket(startMs));
+            NetworkHelper.sendToPlayer((ServerPlayer) player, new TimeCheckPacket(startMs + (cfg.preparePhase + cfg.battlePhase + cfg.finalPhase) * 1000L));
         }
     }
 
     @SubscribeEvent
     public static void revivePos(PlayerRespawnPositionEvent event) {
+        if (phase == MatchPhase.CHOOSE) {
+            return;
+        }
         var old = event.getDimensionTransition();
         event.setDimensionTransition(new DimensionTransition(
                 old.newLevel(),

@@ -33,7 +33,7 @@ public class OpScreen extends TScreen {
         NetworkHelper.sendToServer(new SetModePacket(MatchMode.INTRUDER));
     });
     private final TLabelButton siegeMod = new TLabelButton(Component.literal("围攻"), button -> {
-        NetworkHelper.sendToServer(new SetModePacket(MatchMode.INTRUDER));
+        NetworkHelper.sendToServer(new SetModePacket(MatchMode.SIEGE));
     });
 
     private final TButton start = new TButton(Component.literal("开始对局"), button -> {

@@ -46,7 +46,7 @@ public abstract class SiegeHintHUD {
 
     public static class Final extends AutoCloseHintHUD {
         public Final() {
-            super("围攻", "决胜阶段", "XDM加油冲冲冲!");
+            super("围攻", "决胜阶段", "XDM加油冲冲冲!\n准备迎接随机事件!");
         }
     }
 }

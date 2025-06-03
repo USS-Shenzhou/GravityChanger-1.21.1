@@ -105,15 +105,19 @@ public abstract class MatchManager {
 
     public static ArmorStand FAKE_OWNER = null;
 
+    private static ArrayList<RandomEvent> events = new ArrayList<>();
+
     public void serverTick() {
         //autoGravityDirection();
 
         //random event
         if (phase == MatchPhase.FINAL) {
             if (tick % (100 * 20) == 0) {
-                do {
-                    event = RandomEvent.values()[ThreadLocalRandom.current().nextInt(RandomEvent.values().length)];
-                } while (event == lastEvent);
+                if (events.isEmpty()) {
+                    events.addAll(List.of(RandomEvent.values()));
+                }
+                event = events.get(ThreadLocalRandom.current().nextInt(events.size()));
+                events.remove(event);
                 lastEvent = event;
                 NetworkHelper.sendToAllPlayers(new RandomEventPacket(event));
                 UtilS.delay(() -> event = null, event.time);
@@ -137,13 +141,9 @@ public abstract class MatchManager {
                     }
                     case LOW_GRAVITY -> {
                         forEachS(p -> {
-                            GravityChangerAPIProxy.setBaseGravityStrength(p, 0.15);
+                            p.addEffect(new MobEffectInstance(MobEffects.JUMP, 60 * 20, 6, false, false));
+                            p.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 60 * 20, 0, false, false));
                         });
-                        UtilS.delay(() -> {
-                            forEachS(p -> {
-                                GravityChangerAPIProxy.setBaseGravityStrength(p, 1);
-                            });
-                        }, event.time);
                     }
                     case RESPAWN_BEACON -> {
                         var random = ThreadLocalRandom.current();
@@ -206,18 +206,18 @@ public abstract class MatchManager {
                 FAKE_OWNER.setCustomName(Component.empty());
             }
             var random = ThreadLocalRandom.current();
-            var vec = new Vec3(random.nextDouble(), random.nextDouble(), random.nextDouble());
+            var vec = new Vec3(2 * random.nextDouble() - 1, 2 * random.nextDouble() - 1, 2 * random.nextDouble() - 1);
             LargeFireball largefireball = new LargeFireball(getLevel(), FAKE_OWNER, vec.normalize(), 2);
             largefireball.setPos(0, 0, 0);
             getLevel().playSeededSound(null, 0, 0, 0, SoundEvents.GHAST_SHOOT, SoundSource.BLOCKS, 1, 1, 42L);
             getLevel().addFreshEntity(largefireball);
         }
 
-        if (poi != null && event == RandomEvent.RESPAWN_BEACON || event == RandomEvent.CORE_REVIVE) {
+        if (poi != null && (event == RandomEvent.RESPAWN_BEACON || event == RandomEvent.CORE_REVIVE)) {
             var entity = getLevel().getBlockEntity(poi);
             if (entity instanceof BarrelBlockEntity e && e.hasAnyOf(Set.of(Items.BEACON, Items.END_CRYSTAL))) {
                 getServer().getCommands().performPrefixedCommand(getServer().createCommandSourceStack(),
-                        "mp minecraft:ash RANDOM 300 TRUE 2 ~ ~ ~ 0.0 0.0 0.0 0.0 0.0 0.0 0.25 0.25 0.25 FALSE 0 0 0 1.0 1.0 0.0 0.0 0 0 0 0 0.00001 FALSE 0 0 INSTANCED 0.000 0.923 0.946 6 1 1 LINEAR 1.00 4.00 LINEAR @a {\"indexed\":1,\"tenet\":1}");
+                        "mp minecraft:ash RANDOM 350 TRUE 20 ~ ~ ~ 0.0 0.0 0.0 0.0 0.0 0.0 0.25 0.25 0.25 FALSE 0 0 0 1.0 1.0 0.0 0.0 0 0 0 0 0.00001 FALSE 0 0 INSTANCED 0.000 0.923 0.946 6 1 1 LINEAR 1.00 4.00 LINEAR @a {\"indexed\":1,\"tenet\":1}");
             }
         }
     }
@@ -418,7 +418,7 @@ public abstract class MatchManager {
     }
 
     //TODO
-    public static class Intruder extends MatchManager {
+    public static class Intruder extends Core {
 
         @Override
         public void startServer() {
