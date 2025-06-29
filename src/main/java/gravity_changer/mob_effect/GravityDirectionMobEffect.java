@@ -15,26 +15,26 @@ import java.util.EnumMap;
 
 public class GravityDirectionMobEffect extends MobEffect {
     public static final int COLOR = 0x98D982;
-    
+
     public static final ResourceLocation PHASE = ResourceLocation.fromNamespaceAndPath("gravity_changer", "dir_mob_effect_phase");
-    
+
     public final Direction gravityDirection;
-    
+
     public GravityDirectionMobEffect(Direction gravityDirection) {
         super(MobEffectCategory.NEUTRAL, COLOR);
         this.gravityDirection = gravityDirection;
     }
-    
+
     public static final EnumMap<Direction, GravityDirectionMobEffect> EFFECT_MAP =
-        new EnumMap<>(Direction.class);
-    
+            new EnumMap<>(Direction.class);
+
     static {
         for (Direction dir : Direction.values()) {
             GravityDirectionMobEffect effect = new GravityDirectionMobEffect(dir);
             EFFECT_MAP.put(dir, effect);
         }
     }
-    
+
     public static ResourceLocation getEffectId(Direction direction) {
         return switch (direction) {
             case DOWN -> ResourceLocation.fromNamespaceAndPath("gravity_changer", "down");
@@ -45,34 +45,45 @@ public class GravityDirectionMobEffect extends MobEffect {
             case EAST -> ResourceLocation.fromNamespaceAndPath("gravity_changer", "east");
         };
     }
-    
+
     public static void init() {
         for (Direction dir : Direction.values()) {
             Registry.register(
-                BuiltInRegistries.MOB_EFFECT, getEffectId(dir), EFFECT_MAP.get(dir)
+                    BuiltInRegistries.MOB_EFFECT, getEffectId(dir), EFFECT_MAP.get(dir)
             );
         }
-    
+
         GravityComponent.GRAVITY_UPDATE_EVENT.register(
-            PHASE, (entity, component) -> {
-                if (!(entity instanceof LivingEntity livingEntity)) {
-                    return;
-                }
-                
-                for (GravityDirectionMobEffect dirEffect : GravityDirectionMobEffect.EFFECT_MAP.values()) {
-                    MobEffectInstance effectInstance = livingEntity.getEffect(Holder.direct(dirEffect));
-                    if (effectInstance != null) {
-                        int amplifier = effectInstance.getAmplifier();
-                        
-                        component.applyGravityDirectionEffect(
-                            dirEffect.gravityDirection,
-                            null,
-                            amplifier + 1.0, 0
-                        );
+                PHASE, (entity, component) -> {
+                    if (!(entity instanceof LivingEntity livingEntity)) {
+                        return;
                     }
+
+                    livingEntity.getActiveEffects()
+                            .stream()
+                            .filter(mobEffectInstance -> mobEffectInstance.getEffect().getRegisteredName().startsWith("gravity_changer"))
+                            .forEach(mobEffectInstance -> {
+                                int amplifier = mobEffectInstance.getAmplifier();
+
+                                component.applyGravityDirectionEffect(
+                                        ((GravityDirectionMobEffect) mobEffectInstance.getEffect().value()).gravityDirection,
+                                        null,
+                                        amplifier + 1.0, 0
+                                );
+                            });
                 }
-            }
         );
-        
+
+    }
+
+    @Override
+    public void onEffectStarted(LivingEntity livingEntity, int i) {
+        super.onEffectStarted(livingEntity, i);
+        var clear = livingEntity.getActiveEffects()
+                .stream()
+                .filter(mobEffectInstance -> mobEffectInstance.getEffect().getRegisteredName().startsWith("gravity_changer"))
+                .filter(mobEffectInstance -> ((GravityDirectionMobEffect) mobEffectInstance.getEffect().value()).gravityDirection != this.gravityDirection)
+                .toList();
+        clear.forEach(mobEffectInstance -> livingEntity.removeEffect(mobEffectInstance.getEffect()));
     }
 }
