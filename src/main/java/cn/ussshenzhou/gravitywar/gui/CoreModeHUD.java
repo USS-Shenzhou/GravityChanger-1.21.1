@@ -5,6 +5,7 @@ import cn.ussshenzhou.gravitywar.entity.CoreEntity;
 import cn.ussshenzhou.gravitywar.game.ClientGameManager;
 import cn.ussshenzhou.gravitywar.game.GameManager;
 import cn.ussshenzhou.gravitywar.game.GravityWarConfig;
+import cn.ussshenzhou.gravitywar.game.MatchPhase;
 import cn.ussshenzhou.gravitywar.util.ColorHelper;
 import cn.ussshenzhou.gravitywar.util.DirectionHelper;
 import cn.ussshenzhou.t88.config.ConfigHelper;
@@ -178,7 +179,12 @@ public class CoreModeHUD extends TPanel {
             }
         } catch (IndexOutOfBoundsException ignored) {
         }
-
+        if (ClientGameManager.phase == MatchPhase.FINAL){
+            core0.setVisibleT(false);
+            core1.setVisibleT(false);
+            core2.setVisibleT(false);
+            core3.setVisibleT(false);
+        }
 
         super.tickT();
     }
