@@ -27,8 +27,8 @@ public class ColorHelper {
     public static Vector3f getRGB3f(Direction direction) {
         int rgb = getRGB(direction);
         return new Vector3f(
-                ((rgb >> 16) & 0xFF) / 255f,
-                ((rgb >>  8) & 0xFF) / 255f,
+                ((rgb >>> 16) & 0xFF) / 255f,
+                ((rgb >>>  8) & 0xFF) / 255f,
                 ( rgb        & 0xFF) / 255f
         );
     }

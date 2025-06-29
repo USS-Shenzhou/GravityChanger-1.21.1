@@ -17,6 +17,7 @@ import cn.ussshenzhou.t88.network.NetworkHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -24,6 +25,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.neoforged.neoforge.registries.DeferredItem;
 import org.checkerframework.checker.units.qual.A;
 
 import static cn.ussshenzhou.gravitywar.gui.TradeScreen.BUTTON_WIDTH;
@@ -58,45 +60,52 @@ public class TradePanel extends TVerticalScrollContainer {
                 case SOUTH -> BAMBOO_BLOCK;
                 case WEST -> MANGROVE_LOG;
                 case EAST -> WARPED_STEM;
-            }, 32, COBBLESTONE, 16);
+            }, 32, EMERALD, 16);
         });
-        addTrade(COBBLESTONE, 16, COOKED_CHICKEN, 12);
-        addTrade(COBBLESTONE, 16, COOKED_BEEF, 8);
-        addTrade(RAW_IRON, 32, IRON_INGOT, 30);
+        addTrade(EMERALD, 16, COOKED_CHICKEN, 12);
+        addTrade(EMERALD, 16, COOKED_BEEF, 8);
         addTitle("装备");
-        addTrade(IRON_INGOT, 7, IRON_HELMET, Enchantments.PROTECTION, 2);
-        addTrade(IRON_INGOT, 10, IRON_CHESTPLATE, Enchantments.PROTECTION, 2);
-        addTrade(IRON_INGOT, 9, IRON_LEGGINGS, Enchantments.PROTECTION, 2);
-        addTrade(IRON_INGOT, 6, IRON_BOOTS, Enchantments.PROTECTION, 2);
-        addTrade(IRON_INGOT, 3, IRON_SWORD, Enchantments.SHARPNESS, 2);
+        addTrade(EMERALD, 12, IRON_HELMET, Enchantments.PROTECTION, 2);
+        addTrade(EMERALD, 24, IRON_CHESTPLATE, Enchantments.PROTECTION, 2);
+        addTrade(EMERALD, 18, IRON_LEGGINGS, Enchantments.PROTECTION, 2);
+        addTrade(EMERALD, 14, IRON_BOOTS, Enchantments.PROTECTION, 2);
+        addTrade(EMERALD, 6, IRON_SWORD, Enchantments.SHARPNESS, 2);
 
-        addTrade(DIAMOND, 7, DIAMOND_HELMET, Enchantments.PROTECTION, 2);
-        addTrade(DIAMOND, 10, DIAMOND_CHESTPLATE, Enchantments.PROTECTION, 2);
-        addTrade(DIAMOND, 9, DIAMOND_LEGGINGS, Enchantments.PROTECTION, 2);
+        addTrade(EMERALD, 16, DIAMOND_HELMET, Enchantments.PROTECTION, 2);
+        addTrade(EMERALD, 32, DIAMOND_CHESTPLATE, Enchantments.PROTECTION, 2);
+        addTrade(EMERALD, 22, DIAMOND_LEGGINGS, Enchantments.PROTECTION, 2);
         var enc = Minecraft.getInstance().level.registryAccess().lookup(Registries.ENCHANTMENT).get();
         var t = new ItemStack(DIAMOND_BOOTS);
         t.enchant(enc.get(Enchantments.PROTECTION).get(), 2);
         t.enchant(enc.get(Enchantments.FEATHER_FALLING).get(), 2);
-        addTrade(DIAMOND, 8, t);
-        addTrade(DIAMOND, 3, DIAMOND_SWORD, Enchantments.SHARPNESS, 2);
+        addTrade(EMERALD, 18, t);
+        addTrade(EMERALD, 12, DIAMOND_SWORD, Enchantments.SHARPNESS, 2);
 
-        add(new SelfTradeButton(new ItemStack(COBBLESTONE, 16), new ItemStack(BOW))
+        add(new SelfTradeButton(new ItemStack(EMERALD, 16), new ItemStack(BOW))
                 .setTooltip(Tooltip.create(Component.literal("§c谨慎购买\n§f弓箭在不同区域会有不同的重力方向。")))
         );
-        add(new SelfTradeButton(new ItemStack(COBBLESTONE, 32), new ItemStack(ARROW, 64))
+        add(new SelfTradeButton(new ItemStack(EMERALD, 32), new ItemStack(ARROW, 64))
                 .setTooltip(Tooltip.create(Component.literal("§c谨慎购买\n§f弓箭在不同区域会有不同的重力方向。")))
         );
+        addTitle("重力药水");
+        TradeHelper.getGravityPotions().forEach((dir, item) -> {
+            add(new SelfTradeButton(new ItemStack(EMERALD, 8), item.copy())
+                    .setTooltip(
+                            Tooltip.create(Component.literal(item.get(DataComponents.ITEM_NAME).getString() +
+                                    "\n首次摧毁一个敌方核心后全队启用自动转换。"
+                            ))));
+        });
 
 
         if (TradeHelper.isKaMu(Minecraft.getInstance().player)) {
             assertVoid();
-            add(new SelfTradeButton(new ItemStack(COBBLESTONE, 8), TradeHelper.getLavaBottle().copy())
+            add(new SelfTradeButton(new ItemStack(EMERALD, 8), TradeHelper.getLavaBottle().copy())
                     .setTooltip(Tooltip.create(Component.literal("§8上古失落的彩蛋\n§6家乡特产。\n§7只有你能进行此交易")))
             );
         }
         if (TradeHelper.isMelor(Minecraft.getInstance().player)) {
             assertVoid();
-            add(new SelfTradeButton(new ItemStack(Items.COBBLESTONE, 128), TradeHelper.MELOR_SWORD_C.get().copy())
+            add(new SelfTradeButton(new ItemStack(Items.EMERALD, 128), TradeHelper.MELOR_SWORD_C.get().copy())
                     .setTooltip(Tooltip.create(Component.literal("§8上古失落的彩蛋\n§b《方块杯空岛冠军》\n§7只有你能进行此交易\n§8本来想给个茄子的但是懒得画。")))
             );
         }

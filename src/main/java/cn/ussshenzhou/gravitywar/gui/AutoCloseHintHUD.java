@@ -13,7 +13,7 @@ import net.minecraft.network.chat.Component;
  * @author USS_Shenzhou
  */
 public class AutoCloseHintHUD extends TPanel {
-    protected int life = 10 * 20;
+    protected int life = 12 * 20;
     protected int age = 0;
     protected final TLabel mode = new TLabel();
     protected final TLabel phase = new TLabel();
@@ -39,7 +39,7 @@ public class AutoCloseHintHUD extends TPanel {
         ClientGameManager.getMyTeam()
                 .ifPresent(d -> {
                     this.team.setForeground(ColorHelper.getARGB(d, 0xff));
-                    this.team.setText(Component.literal(DirectionHelper.getName(d)));
+                    this.team.setText(Component.literal(DirectionHelper.getTeamName(d)));
                 });
         this.team.setFontSize(14);
         team.setHorizontalAlignment(HorizontalAlignment.LEFT);

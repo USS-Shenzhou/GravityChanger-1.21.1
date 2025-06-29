@@ -40,6 +40,5 @@ public class ModKeyInput {
         } else if (OP_SCREEN.consumeClick() && minecraft.player != null && minecraft.player.hasPermissions(4)) {
             minecraft.setScreen(new OpScreen());
         }
-        HudManager.addIfSameClassNotExist(new CoreHintHUD.Final());
     }
 }

@@ -22,6 +22,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.SimpleExplosionDamageCalculator;
 import net.minecraft.world.phys.Vec3;
@@ -94,25 +95,35 @@ public class CoreEntity extends Mob {
 
     @Override
     public void remove(RemovalReason reason) {
-        if (!this.level().isClientSide && reason == Entity.RemovalReason.KILLED) {
-            level().explode(this,
-                    level().damageSources().explosion(getLastHurtByMob(), getLastHurtByMob()),
-                    new SimpleExplosionDamageCalculator(true, true, Optional.of(0.5f), Optional.empty()),
-                    this.position(),
-                    3,
-                    false,
-                    Level.ExplosionInteraction.BLOCK
-            );
-            var dir = DirectionHelper.getPyramidRegion(this.position());
-            ServerGameManager.forEachS(p -> {
-                if (p.position().distanceTo(this.position()) <= 20) {
-                    GravityChangerAPIProxy.setBaseGravityDirection(p, dir);
+        if (!this.level().isClientSide) {
+            if (reason == RemovalReason.KILLED) {
+                level().explode(this,
+                        level().damageSources().explosion(getLastHurtByMob(), getLastHurtByMob()),
+                        new SimpleExplosionDamageCalculator(true, true, Optional.of(0.5f), Optional.empty()),
+                        this.position(),
+                        3,
+                        false,
+                        Level.ExplosionInteraction.BLOCK
+                );
+                //var dir = DirectionHelper.getPyramidRegion(this.position());
+                //ServerGameManager.forEachS(p -> {
+                //    if (p.position().distanceTo(this.position()) <= 20) {
+                //        GravityChangerAPIProxy.setBaseGravityDirection(p, dir);
+                //    }
+                //});
+                if (getLastHurtByMob() instanceof Player player) {
+                    ServerGameManager.TEAM_TO_PLAYER.get(ServerGameManager.PLAYER_TO_TEAM.get(player.getUUID()))
+                            .stream()
+                            .map(ServerGameManager::getPlayerS)
+                            .filter(Optional::isPresent)
+                            .map(Optional::get)
+                            .forEach(p -> p.addTag("gw_auto_rot"));
                 }
-            });
+                ((ServerLevel) level()).playSeededSound(null, this, BuiltInRegistries.SOUND_EVENT.wrapAsHolder(SoundEvents.BEACON_DEACTIVATE), SoundSource.BLOCKS, 0.8f, 1.3f, 42L);
+            }
             var color = ColorHelper.getRGB3f(DirectionHelper.getPyramidRegion(this.position()));
             var tag = new CompoundTag();
             var pos = this.getEyePosition();
-            ((ServerLevel) level()).playSeededSound(null, this, BuiltInRegistries.SOUND_EVENT.wrapAsHolder(SoundEvents.BEACON_DEACTIVATE), SoundSource.BLOCKS, 0.8f, 1.3f, 42L);
             AddParticleHelperS.addParticleServer(
                     ((ServerLevel) level()),
                     ParticleTypes.WHITE_ASH,

@@ -7,15 +7,13 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Tuple;
 
-import java.util.UUID;
-
 /**
  * @author USS_Shenzhou
  */
 public abstract class SiegeHintHUD {
     public static class Prep extends AutoCloseHintHUD {
         public Prep() {
-            super("围攻", "准备阶段", "熟悉地形和操作，收集资源，打造装备");
+            super("围攻", "准备阶段", "熟悉地形和操作\n挖掘矿石收集资源，找到村民进行交易");
             this.add(team);
         }
     }
@@ -30,14 +28,14 @@ public abstract class SiegeHintHUD {
             if (Minecraft.getInstance().player.getPermissionLevel() > 0) {
                 text.append("抵御全体玩家们的进攻!");
             } else {
-                text.append("所有玩家，联合起来!");
+                text.append("地图上的末影水晶就是队伍核心\n摧毁敌方核心，保卫己方核心\n所有玩家，联合起来!");
                 GameManager.TEAM_TO_PLAYER.entrySet().stream()
                         .map(entry -> new Tuple<>(entry.getKey(), entry.getValue().stream().findAny()))
                         .filter(tuple -> tuple.getB().isPresent() && ClientGameManager.getPlayerC(tuple.getB().get()).map(p -> p.hasPermissions(4)).orElse(false))
                         .findAny()
                         .ifPresent(tuple -> text.append("一起进攻up主所在的")
-                                .append(DirectionHelper.getName(tuple.getA()))
-                                .append("!")
+                                .append(DirectionHelper.getTeamName(tuple.getA()))
+                                .append("!\n准备迎接随机事件!")
                         );
             }
             this.desc.setText(Component.literal(text.toString()));
@@ -46,7 +44,7 @@ public abstract class SiegeHintHUD {
 
     public static class Final extends AutoCloseHintHUD {
         public Final() {
-            super("围攻", "决胜阶段", "XDM加油冲冲冲!\n准备迎接随机事件!");
+            super("围攻", "决胜阶段", "XDM加油冲冲冲!");
         }
     }
 }

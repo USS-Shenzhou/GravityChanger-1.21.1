@@ -17,6 +17,6 @@ public class VictoryHUD extends AutoCloseHintHUD {
             case SIEGE -> "围攻";
         }, "", "");
 
-        phase.setText(Component.literal(DirectionHelper.getName(victory) + " 胜利").withColor(ColorHelper.getRGB(victory)));
+        phase.setText(Component.literal(DirectionHelper.getTeamName(victory) + " 胜利").withColor(ColorHelper.getRGB(victory)));
     }
 }

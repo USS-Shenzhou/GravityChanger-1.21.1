@@ -27,14 +27,18 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.decoration.ArmorStand;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.LargeFireball;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ItemLore;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.SimpleExplosionDamageCalculator;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BarrelBlockEntity;
 import net.minecraft.world.phys.Vec3;
@@ -101,6 +105,19 @@ public abstract class MatchManager {
         phase = MatchPhase.FINAL;
         var pkt = new ChangePhasePacket(MatchPhase.FINAL);
         forEachS(p -> NetworkHelper.sendToPlayer(p, pkt));
+        StreamSupport.stream(getLevel().getEntities().getAll().spliterator(), false)
+                .filter(entity -> entity instanceof CoreEntity)
+                .toList()
+                .forEach(core -> {
+                    getLevel().explode(core,
+                            null,
+                            new SimpleExplosionDamageCalculator(true, true, Optional.of(0.5f), Optional.empty()),
+                            core.position(),
+                            3,
+                            false,
+                            Level.ExplosionInteraction.BLOCK);
+                    core.remove(Entity.RemovalReason.KILLED);
+                });
     }
 
     public static ArmorStand FAKE_OWNER = null;
@@ -108,11 +125,10 @@ public abstract class MatchManager {
     private static ArrayList<RandomEvent> events = new ArrayList<>();
 
     public void serverTick() {
-        //autoGravityDirection();
-
+        autoGravityDirection();
         //random event
-        if (phase == MatchPhase.FINAL) {
-            if (tick % (100 * 20) == 0) {
+        if (phase == MatchPhase.BATTLE) {
+            if (tick > 0 && tick % (100 * 20) == 0) {
                 if (events.isEmpty()) {
                     events.addAll(List.of(RandomEvent.values()));
                 }
@@ -198,7 +214,7 @@ public abstract class MatchManager {
             }
             tick++;
         } else {
-            tick = 60;
+            tick = -6060;
         }
         if (event == RandomEvent.FIREBALL) {
             if (FAKE_OWNER == null) {
@@ -222,13 +238,16 @@ public abstract class MatchManager {
         }
     }
 
-    /*protected void autoGravityDirection() {
+    protected void autoGravityDirection() {
         getLevel().getAllEntities().forEach(entity -> {
             if (entity instanceof Player player) {
                 if (!PLAYER_TO_TEAM.containsKey(player.getUUID())) {
                     return;
                 }
                 var tags = entity.getTags();
+                if (!tags.contains("gw_auto_rot")) {
+                    return;
+                }
                 //remove, add
                 String[] tagTo = {null, null};
                 tags.stream()
@@ -246,7 +265,7 @@ public abstract class MatchManager {
                             var correctG = phase == MatchPhase.CHOOSE ? Direction.DOWN : DirectionHelper.getPyramidRegion(entity.getEyePosition());
                             if (currentG != correctG) {
                                 GravityChangerAPIProxy.setBaseGravityDirection(entity, correctG);
-                                entity.addTag("gw_rot_cd_" + 20);
+                                tagTo[1] = "gw_rot_cd_" + 20;
                             }
                         });
                 if (tagTo[0] != null) {
@@ -263,7 +282,7 @@ public abstract class MatchManager {
                 }
             }
         });
-    }*/
+    }
 
     @OnlyIn(Dist.CLIENT)
     public void clientTick() {
@@ -385,7 +404,7 @@ public abstract class MatchManager {
                 StringBuilder message = new StringBuilder();
                 failed.forEach(o -> {
                     teamsOnGround.remove(o);
-                    message.append(DirectionHelper.getName(o)).append(' ');
+                    message.append(DirectionHelper.getTeamName(o)).append(' ');
                 });
                 message.append("失败");
                 NetworkHelper.sendToAllPlayers(new TeamFailPacket(message.toString()));

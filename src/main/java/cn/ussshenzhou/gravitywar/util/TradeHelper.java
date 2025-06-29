@@ -2,6 +2,7 @@ package cn.ussshenzhou.gravitywar.util;
 
 import cn.ussshenzhou.t88.util.InventoryHelper;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.component.DataComponents;
@@ -12,6 +13,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
@@ -32,6 +34,8 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -41,6 +45,30 @@ import java.util.function.Supplier;
  */
 @EventBusSubscriber(bus = EventBusSubscriber.Bus.GAME)
 public class TradeHelper {
+
+    //-----gravity potion------
+
+    private static HashMap<Direction, ItemStack> GRAVITY_POTIONS = null;
+
+    public static HashMap<Direction, ItemStack> getGravityPotions() {
+        if (GRAVITY_POTIONS == null) {
+            GRAVITY_POTIONS = new HashMap<>();
+            Arrays.stream(Direction.values())
+                    .forEach(dir -> {
+                        var potion = new ItemStack(Items.POTION);
+                        BuiltInRegistries.MOB_EFFECT.getHolder(ResourceLocation.fromNamespaceAndPath("gravity_changer", dir.getName()))
+                                .ifPresent(effect -> {
+                                    potion.set(DataComponents.POTION_CONTENTS, new PotionContents(Optional.empty(), Optional.of(ColorHelper.getRGB(dir)), List.of(
+                                            new MobEffectInstance(effect, 4800, 0)
+                                    )));
+                                    potion.set(DataComponents.ITEM_NAME, Component.literal("重力药水（" + DirectionHelper.getDirName(dir) + "）")
+                                            .withColor(ColorHelper.getRGB(dir)));
+                                    GRAVITY_POTIONS.put(dir, potion);
+                                });
+                    });
+        }
+        return GRAVITY_POTIONS;
+    }
 
     //-----Eastern Eggs-----
 

@@ -29,6 +29,8 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.stream.StreamSupport;
 
 /**
@@ -46,6 +48,10 @@ public class CoreModeHUD extends TPanel {
                 timer.setShowUpto(TimeCategory.MIN);
                 timer.setShowMillis(false);
                 timer.setBackground(0x00000000);
+            }
+            if (timer.getTime() <= 0) {
+                this.setUpdateGui(false);
+                this.setText(Component.literal("Final"));
             }
             super.tickT();
         }
@@ -69,11 +75,16 @@ public class CoreModeHUD extends TPanel {
             ResourceLocation.fromNamespaceAndPath(GravityWar.MODID, "textures/gui/core_3.png"),
             Direction.WEST);
 
+    private final TLabel core0 = new TLabel(Component.literal("当前区域的核心"));
+    private final TProgressBar core1 = new TProgressBar();
+    private final TProgressBar core2 = new TProgressBar();
+    private final TProgressBar core3 = new TProgressBar();
+
     public CoreModeHUD() {
         this.add(timer);
         timer.setCountdown(true);
         var cfg = ConfigHelper.getConfigRead(GravityWarConfig.class);
-        timer.setCountDownSec(cfg.battlePhase + cfg.finalPhase + cfg.preparePhase);
+        timer.setCountDownSec(cfg.battlePhase + cfg.preparePhase);
         timer.start();
         timer.setShowFullFormat(true);
         timer.setFontSize(14);
@@ -91,6 +102,15 @@ public class CoreModeHUD extends TPanel {
             var statusWithBackground = getRing(d);
             statusWithBackground.setBorder(new Border(ColorHelper.getARGB(d, 0x80), 4));
         });
+
+        this.add(core1);
+        core1.setTextMode(TProgressBar.TextMode.VALUE_INT_SLASH_MAX);
+        this.add(core2);
+        core2.setTextMode(TProgressBar.TextMode.VALUE_INT_SLASH_MAX);
+        this.add(core3);
+        core3.setTextMode(TProgressBar.TextMode.VALUE_INT_SLASH_MAX);
+        this.add(core0);
+        core0.setHorizontalAlignment(HorizontalAlignment.CENTER);
     }
 
     private ColorfulImage getRing(Direction d) {
@@ -135,6 +155,31 @@ public class CoreModeHUD extends TPanel {
             int i = Mth.clamp(cores[d.ordinal()], 0, 3);
             getRing(d).setImageLocation(ResourceLocation.fromNamespaceAndPath(GravityWar.MODID, "textures/gui/core_" + i + ".png"));
         }
+
+        var thisDir = DirectionHelper.getPyramidRegion(Minecraft.getInstance().player.position());
+        var thisCores = StreamSupport.stream(Minecraft.getInstance().level.getEntities().getAll().spliterator(), false)
+                .filter(e -> e instanceof CoreEntity && DirectionHelper.getPyramidRegion(e.position()) == thisDir)
+                .limit(3)
+                .toList();
+
+        BiConsumer<TProgressBar, CoreEntity> process = (bar, entity) -> {
+            bar.setProgressBarColor(ColorHelper.getARGB(thisDir, 0xd0));
+            bar.setMaxValue((entity).getMaxHealth());
+            bar.setValue((entity).getHealth());
+        };
+
+        try {
+            for (int i = 0; i < thisCores.size(); i++) {
+                switch (i) {
+                    case 0 -> process.accept(core1, (CoreEntity) thisCores.get(0));
+                    case 1 -> process.accept(core2, (CoreEntity) thisCores.get(1));
+                    case 2 -> process.accept(core3, (CoreEntity) thisCores.get(2));
+                }
+            }
+        } catch (IndexOutOfBoundsException ignored) {
+        }
+
+
         super.tickT();
     }
 
@@ -154,6 +199,13 @@ public class CoreModeHUD extends TPanel {
         LayoutHelper.BRightOfA(westTeamStatus, 4, timer, 32, 32);
         LayoutHelper.BRightOfA(southTeamStatus, 4, westTeamStatus, 32, 32);
         LayoutHelper.BRightOfA(upTeamStatus, 4, southTeamStatus, 32, 32);
+
+        int gap = 4;
+        int w = (int) (width / 6f);
+        core0.setBounds(width - w - 4, height / 2 - gap / 2 - gap * 2 - 30, w, 10);
+        LayoutHelper.BBottomOfA(core1, gap, core0);
+        LayoutHelper.BBottomOfA(core2, gap, core1);
+        LayoutHelper.BBottomOfA(core3, gap, core2);
 
         super.layout();
     }

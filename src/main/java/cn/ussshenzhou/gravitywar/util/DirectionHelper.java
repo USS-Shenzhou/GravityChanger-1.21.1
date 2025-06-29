@@ -162,7 +162,7 @@ public class DirectionHelper {
         );
     }
 
-    public static String getName(Direction dir) {
+    public static String getTeamName(Direction dir) {
         return switch (dir) {
             case DOWN -> "黑队";
             case UP -> "橙队";
@@ -170,6 +170,17 @@ public class DirectionHelper {
             case SOUTH -> "黄队";
             case WEST -> "红队";
             case EAST -> "蓝队";
+        };
+    }
+
+    public static String getDirName(Direction dir) {
+        return switch (dir) {
+            case DOWN -> "下";
+            case UP -> "上";
+            case NORTH -> "北";
+            case SOUTH -> "南";
+            case WEST -> "西";
+            case EAST -> "东";
         };
     }
 }

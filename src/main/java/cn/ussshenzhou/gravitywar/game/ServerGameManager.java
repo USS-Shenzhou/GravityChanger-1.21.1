@@ -213,6 +213,10 @@ public class ServerGameManager extends GameManager {
             PLAYER_TO_TEAM.forEach((uuid, direction) -> {
                 getPlayerS(uuid).ifPresent(p -> {
                     GravityChangerAPIProxy.setBaseGravityDirection(p, Direction.DOWN);
+                    p.getTags().stream()
+                            .filter(tag -> "gw_auto_rot".equals(tag) || tag.startsWith("gw_rot_cd_"))
+                            .toList()
+                            .forEach(p::removeTag);
                 });
             });
             NetworkHelper.sendToAllPlayers(new TeamPlayerNumberPacket(new int[6]));
@@ -409,7 +413,7 @@ public class ServerGameManager extends GameManager {
             var core = ModEntities.CORE_ENTITY_TYPE.get().create(ServerGameManager.getLevel());
             core.setPos(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
             ServerGameManager.getLevel().addFreshEntity(core);
-            NetworkHelper.sendToAllPlayers(new SubtitlePacket(DirectionHelper.getName(DirectionHelper.getPyramidRegion(pos)) + " 已激活新核心"));
+            NetworkHelper.sendToAllPlayers(new SubtitlePacket(DirectionHelper.getTeamName(DirectionHelper.getPyramidRegion(pos)) + " 已激活新核心"));
         }
     }
 }

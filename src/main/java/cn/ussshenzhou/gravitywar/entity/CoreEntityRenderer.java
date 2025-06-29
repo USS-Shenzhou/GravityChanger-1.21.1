@@ -5,6 +5,7 @@ import cn.ussshenzhou.gravitywar.util.ColorHelper;
 import cn.ussshenzhou.gravitywar.util.DirectionHelper;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.logging.LogUtils;
 import com.mojang.math.Axis;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
@@ -20,6 +21,7 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.ColorRGBA;
 import net.minecraft.util.Mth;
 import org.joml.Quaternionf;
 
@@ -28,7 +30,7 @@ import org.joml.Quaternionf;
  */
 public class CoreEntityRenderer extends EntityRenderer<CoreEntity> {
     private static final ResourceLocation END_CRYSTAL_LOCATION = ResourceLocation.fromNamespaceAndPath(GravityWar.MODID, "textures/entity/end_crystal.png");
-    private static final RenderType RENDER_TYPE = RenderType.entityCutoutNoCull(END_CRYSTAL_LOCATION);
+    private static final RenderType RENDER_TYPE = RenderType.entityTranslucent(END_CRYSTAL_LOCATION);
     private static final float SIN_45 = (float) Math.sin(Math.PI / 4);
     private static final String GLASS = "glass";
     private static final String BASE = "base";
@@ -67,9 +69,9 @@ public class CoreEntityRenderer extends EntityRenderer<CoreEntity> {
         var dir = DirectionHelper.getPyramidRegion(entity.position());
         int color;
         if (dir == Direction.DOWN) {
-            color = 0x80a0a0a0;
+            color = 0xffa0a0a0;
         } else {
-            color = ColorHelper.getARGB(dir, 0x80);
+            color = ColorHelper.getARGB(dir, 0xff);
         }
 
         poseStack.mulPose(Axis.YP.rotationDegrees(f1));
@@ -78,6 +80,11 @@ public class CoreEntityRenderer extends EntityRenderer<CoreEntity> {
         poseStack.scale(0.875F, 0.875F, 0.875F);
         poseStack.mulPose(new Quaternionf().setAngleAxis((float) (Math.PI / 3), SIN_45, 0.0F, SIN_45));
         poseStack.mulPose(Axis.YP.rotationDegrees(f1));
+
+        float alpha = entity.getHealth() / entity.getMaxHealth();
+        color &= 0x00ffffff;
+        color |= ((int) (alpha * 255) << 24);
+
         this.glass.render(poseStack, vertexconsumer, packedLight, i, color);
         poseStack.scale(0.875F, 0.875F, 0.875F);
         poseStack.mulPose(new Quaternionf().setAngleAxis((float) (Math.PI / 3), SIN_45, 0.0F, SIN_45));
