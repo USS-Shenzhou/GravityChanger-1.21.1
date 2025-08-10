@@ -9,6 +9,7 @@ import cn.ussshenzhou.t88.config.ConfigHelper;
 import cn.ussshenzhou.t88.gui.HudManager;
 import cn.ussshenzhou.t88.gui.util.LayoutHelper;
 import cn.ussshenzhou.t88.gui.widegt.TComponent;
+import cn.ussshenzhou.t88.gui.widegt.TWidget;
 import cn.ussshenzhou.t88.task.TaskHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Direction;
@@ -113,7 +114,24 @@ public class UtilC {
                         0.7f,
                         false
                 );
-        HudManager.addOrReplaceIfSameClassExist(new SubtitleHUD(teamFailPacket.message));
+        HudManager.addOrReplaceIfSameClassExist(new SubtitleHUD(teamFailPacket.message) {
+            @Override
+            public void layout() {
+                var phaseSize = phase.getPreferredSize();
+                phase.setBounds((width - phaseSize.x) / 2, (height - phaseSize.y) / 2, phaseSize);
+                var modeSize = mode.getPreferredSize();
+                mode.setBounds((width - modeSize.x) / 2, phase.getYT() - modeSize.y - 6, modeSize);
+                var descSize = desc.getPreferredSize();
+                desc.setBounds((width - descSize.x) / 2, phase.getYT() + phase.getHeight() + 6 + 24, descSize);
+
+                team.setBounds((int) (width * 0.85), (int) (height * 0.06), team.getPreferredSize());
+                for (TWidget tWidget : children) {
+                    if (tWidget instanceof TComponent tComponent) {
+                        tComponent.layout();
+                    }
+                }
+            }
+        });
     }
 
     public static void handleSubtitlePacket(SubtitlePacket subtitlePacket, IPayloadContext context) {

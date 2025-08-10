@@ -53,6 +53,8 @@ public class CoreModeHUD extends TPanel {
             if (timer.getTime() <= 0) {
                 this.setUpdateGui(false);
                 this.setText(Component.literal("Final"));
+            } else {
+                this.setUpdateGui(true);
             }
             super.tickT();
         }
@@ -179,7 +181,7 @@ public class CoreModeHUD extends TPanel {
             }
         } catch (IndexOutOfBoundsException ignored) {
         }
-        if (ClientGameManager.phase == MatchPhase.FINAL){
+        if (ClientGameManager.phase == MatchPhase.FINAL) {
             core0.setVisibleT(false);
             core1.setVisibleT(false);
             core2.setVisibleT(false);

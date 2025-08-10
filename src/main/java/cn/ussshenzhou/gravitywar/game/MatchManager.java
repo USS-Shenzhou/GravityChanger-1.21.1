@@ -125,6 +125,13 @@ public abstract class MatchManager {
     private static ArrayList<RandomEvent> events = new ArrayList<>();
 
     public void serverTick() {
+        if (phase != MatchPhase.CHOOSE) {
+            forEachS(p -> {
+                if (p.position().distanceToSqr(0, 0, 0) + p.getEyePosition().distanceToSqr(0, 0, 0) <= 16 + 16) {
+                   p.setRemainingFireTicks(60);
+                }
+            });
+        }
         autoGravityDirection();
         //random event
         if (phase == MatchPhase.BATTLE) {
@@ -163,7 +170,7 @@ public abstract class MatchManager {
                     }
                     case RESPAWN_BEACON -> {
                         var random = ThreadLocalRandom.current();
-                        var pos = new BlockPos(random.nextInt(256) - 128, random.nextInt(256) - 128, random.nextInt(256) - 128);
+                        var pos = new BlockPos(random.nextInt(120) - 60, random.nextInt(120) - 60, random.nextInt(120) - 60);
                         poi = pos;
                         getLevel().setBlock(pos, Blocks.BARREL.defaultBlockState(), 1 | 2);
                         BarrelBlockEntity barrelBlockEntity = (BarrelBlockEntity) getLevel().getBlockEntity(pos);
@@ -186,7 +193,7 @@ public abstract class MatchManager {
                     }
                     case CORE_REVIVE -> {
                         var random = ThreadLocalRandom.current();
-                        var pos = new BlockPos(random.nextInt(256) - 128, random.nextInt(256) - 128, random.nextInt(256) - 128);
+                        var pos = new BlockPos(random.nextInt(120) - 60, random.nextInt(120) - 60, random.nextInt(120) - 60);
                         poi = pos;
                         getLevel().setBlock(pos, Blocks.BARREL.defaultBlockState(), 1 | 2);
                         BarrelBlockEntity barrelBlockEntity = (BarrelBlockEntity) getLevel().getBlockEntity(pos);

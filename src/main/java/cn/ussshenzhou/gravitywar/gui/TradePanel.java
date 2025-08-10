@@ -45,7 +45,7 @@ public class TradePanel extends TVerticalScrollContainer {
     private void initFromProfession() {
         addTitle("资源");
         ClientGameManager.getMyTeam().ifPresent(team -> {
-            addTrade(COBBLESTONE, 16, switch (team) {
+            addTrade(EMERALD, 16, switch (team) {
                 case DOWN -> DARK_OAK_LOG;
                 case UP -> ACACIA_LOG;
                 case NORTH -> CHERRY_LOG;
