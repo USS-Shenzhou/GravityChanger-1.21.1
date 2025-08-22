@@ -131,6 +131,7 @@ public class ServerGameManager extends GameManager {
                 .map(ServerGameManager::getPlayerS)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
+                .filter(Objects::nonNull)
                 .forEach(action);
     }
 

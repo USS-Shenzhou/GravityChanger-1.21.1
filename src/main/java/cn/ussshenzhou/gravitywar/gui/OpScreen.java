@@ -29,9 +29,9 @@ public class OpScreen extends TScreen {
     private final TLabelButton coreMod = new TLabelButton(Component.literal("死斗"), button -> {
         NetworkHelper.sendToServer(new SetModePacket(MatchMode.CORE));
     });
-    private final TLabelButton intruderMod = new TLabelButton(Component.literal("入侵"), button -> {
-        NetworkHelper.sendToServer(new SetModePacket(MatchMode.INTRUDER));
-    });
+    //private final TLabelButton intruderMod = new TLabelButton(Component.literal("入侵"), button -> {
+    //    NetworkHelper.sendToServer(new SetModePacket(MatchMode.INTRUDER));
+    //});
     private final TLabelButton siegeMod = new TLabelButton(Component.literal("围攻"), button -> {
         NetworkHelper.sendToServer(new SetModePacket(MatchMode.SIEGE));
     });
@@ -59,12 +59,12 @@ public class OpScreen extends TScreen {
         this.add(start);
         this.add(stop);
         this.add(coreMod);
-        this.add(intruderMod);
+        //this.add(intruderMod);
         this.add(title0);
         title0.setFontSize(14);
         this.add(title1);
         coreMod.setFontSize(14);
-        intruderMod.setFontSize(14);
+        //intruderMod.setFontSize(14);
 
         this.add(siegeMod);
         siegeMod.setFontSize(14);
@@ -98,11 +98,11 @@ public class OpScreen extends TScreen {
         LayoutHelper.BRightOfA(notify, 10, neutralPlayerList, 100, 20);
         LayoutHelper.BBottomOfA(kick, 10, notify);
         LayoutHelper.BBottomOfA(coreMod, 40, notify, 80, 40);
-        LayoutHelper.BRightOfA(intruderMod, 10, coreMod);
-        LayoutHelper.BRightOfA(siegeMod, 10, intruderMod);
+        //LayoutHelper.BRightOfA(intruderMod, 10, coreMod);
+        LayoutHelper.BRightOfA(siegeMod, 10, coreMod);
 
         LayoutHelper.BBottomOfA(start, 8, coreMod, 80, 20);
-        LayoutHelper.BBottomOfA(stop, 8, intruderMod, 80, 20);
+        LayoutHelper.BBottomOfA(stop, 8, start, 80, 20);
         super.layout();
     }
 }

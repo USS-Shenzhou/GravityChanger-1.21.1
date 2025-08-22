@@ -77,11 +77,13 @@ public class CoreModeHUD extends TPanel {
     private final ColorfulImage westTeamStatus = new ColorfulImage(
             ResourceLocation.fromNamespaceAndPath(GravityWar.MODID, "textures/gui/core_3.png"),
             Direction.WEST);
+    private ColorfulImage localTeam = null;
 
     private final TLabel core0 = new TLabel(Component.literal("当前区域的核心"));
     private final TProgressBar core1 = new TProgressBar();
     private final TProgressBar core2 = new TProgressBar();
     private final TProgressBar core3 = new TProgressBar();
+    private final TLabel status = new TLabel(Component.literal("剩余核心"));
 
     public CoreModeHUD() {
         this.add(timer);
@@ -102,8 +104,7 @@ public class CoreModeHUD extends TPanel {
         this.add(westTeamStatus);
 
         ClientGameManager.getMyTeam().ifPresent(d -> {
-            var statusWithBackground = getRing(d);
-            statusWithBackground.setBorder(new Border(ColorHelper.getARGB(d, 0x80), 4));
+            localTeam = getRing(d);
         });
 
         this.add(core1);
@@ -114,6 +115,10 @@ public class CoreModeHUD extends TPanel {
         core3.setTextMode(TProgressBar.TextMode.VALUE_INT_SLASH_MAX);
         this.add(core0);
         core0.setHorizontalAlignment(HorizontalAlignment.CENTER);
+
+        this.add(status);
+        status.setBackground(0x60000000);
+        status.setHorizontalAlignment(HorizontalAlignment.CENTER);
     }
 
     private ColorfulImage getRing(Direction d) {
@@ -129,32 +134,32 @@ public class CoreModeHUD extends TPanel {
 
     @Override
     public void tickT() {
-        GameManager.TEAM_TO_PLAYER.forEach((direction, uuids) -> {
-            var n = uuids.stream()
-                    .map(ClientGameManager::getPlayerC)
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
-                    .filter(player -> {
-                        return Minecraft.getInstance().getConnection() != null &&
-                                Minecraft.getInstance().getConnection().getPlayerInfo(player.getUUID()) != null &&
-                                Minecraft.getInstance().getConnection().getPlayerInfo(player.getUUID()).getGameMode() == GameType.SURVIVAL;
-                    })
-                    .filter(LivingEntity::isAlive)
-                    .count();
-            getRing(direction).playerNumber.setText(Component.literal(String.valueOf(n)));
-        });
+        //GameManager.TEAM_TO_PLAYER.forEach((direction, uuids) -> {
+        //    var n = uuids.stream()
+        //            .map(ClientGameManager::getPlayerC)
+        //            .filter(Optional::isPresent)
+        //            .map(Optional::get)
+        //            .filter(player -> {
+        //                return Minecraft.getInstance().getConnection() != null &&
+        //                        Minecraft.getInstance().getConnection().getPlayerInfo(player.getUUID()) != null &&
+        //                        Minecraft.getInstance().getConnection().getPlayerInfo(player.getUUID()).getGameMode() == GameType.SURVIVAL;
+        //            })
+        //            .filter(LivingEntity::isAlive)
+        //            .count();
+        //    getRing(direction).playerNumber.setText(Component.literal(String.valueOf(n)));
+        //});
         int[] cores = new int[6];
-        int[] playerCount = new int[6];
+        //int[] playerCount = new int[6];
         StreamSupport.stream(Minecraft.getInstance().level.getEntities().getAll().spliterator(), false)
                 .forEach(e -> {
                     if (e instanceof CoreEntity) {
                         cores[DirectionHelper.getPyramidRegion(e.position()).ordinal()]++;
-                    } else if (e instanceof Player && e.isAlive() && GameManager.PLAYER_TO_TEAM.containsKey(e.getUUID())) {
-                        playerCount[GameManager.PLAYER_TO_TEAM.get(e.getUUID()).ordinal()]++;
-                    }
+                    } //else if (e instanceof Player && e.isAlive() && GameManager.PLAYER_TO_TEAM.containsKey(e.getUUID())) {
+                    //    playerCount[GameManager.PLAYER_TO_TEAM.get(e.getUUID()).ordinal()]++;
+                    //}
                 });
         for (var d : Direction.values()) {
-            getRing(d).playerNumber.setText(Component.literal(String.valueOf(playerCount[d.ordinal()])));
+            //getRing(d).playerNumber.setText(Component.literal(String.valueOf(playerCount[d.ordinal()])));
             int i = Mth.clamp(cores[d.ordinal()], 0, 3);
             getRing(d).setImageLocation(ResourceLocation.fromNamespaceAndPath(GravityWar.MODID, "textures/gui/core_" + i + ".png"));
         }
@@ -199,14 +204,16 @@ public class CoreModeHUD extends TPanel {
 
     @Override
     public void layout() {
-        timer.setBounds(width / 2 - 34, 6, 68, timer.getPreferredSize().y + 10);
+        timer.setBounds(width / 2 - 34, 0, 68, timer.getPreferredSize().y + 10);
 
-        LayoutHelper.BLeftOfA(eastTeamStatus, 4, timer, 32, 32);
-        LayoutHelper.BLeftOfA(northTeamStatus, 4, eastTeamStatus, 32, 32);
-        LayoutHelper.BLeftOfA(downTeamStatus, 4, northTeamStatus, 32, 32);
-        LayoutHelper.BRightOfA(westTeamStatus, 4, timer, 32, 32);
-        LayoutHelper.BRightOfA(southTeamStatus, 4, westTeamStatus, 32, 32);
-        LayoutHelper.BRightOfA(upTeamStatus, 4, southTeamStatus, 32, 32);
+        LayoutHelper.BLeftOfA(eastTeamStatus, 0, timer, getSize(eastTeamStatus), getSize(eastTeamStatus));
+        LayoutHelper.BLeftOfA(northTeamStatus, 0, eastTeamStatus, getSize(northTeamStatus), getSize(northTeamStatus));
+        LayoutHelper.BLeftOfA(downTeamStatus, 0, northTeamStatus, getSize(downTeamStatus), getSize(downTeamStatus));
+        LayoutHelper.BRightOfA(westTeamStatus, 0, timer, getSize(westTeamStatus), getSize(westTeamStatus));
+        LayoutHelper.BRightOfA(southTeamStatus, 0, westTeamStatus, getSize(southTeamStatus), getSize(southTeamStatus));
+        LayoutHelper.BRightOfA(upTeamStatus, 0, southTeamStatus, getSize(upTeamStatus), getSize(upTeamStatus));
+
+        LayoutHelper.BLeftOfA(status, 0, downTeamStatus, status.getPreferredSize().x + 4, status.getPreferredSize().y + 4);
 
         int gap = 4;
         int w = (int) (width / 6f);
@@ -218,28 +225,34 @@ public class CoreModeHUD extends TPanel {
         super.layout();
     }
 
+    private int getSize(ColorfulImage image) {
+        return image == localTeam ? 36 : 30;
+    }
+
     public static class ColorfulImage extends TImage {
         private final Vector3f color;
-        private final TLabel playerNumber = new TLabel(Component.literal("0"));
+        //private final TLabel playerNumber = new TLabel(Component.literal("0"));
 
         public ColorfulImage(ResourceLocation imageLocation, Direction direction) {
             super(imageLocation);
             this.color = ColorHelper.getRGB3f(direction);
-            this.add(playerNumber);
-            playerNumber.setHorizontalAlignment(HorizontalAlignment.CENTER);
-            playerNumber.setForeground(ColorHelper.getARGB(direction, 0xd0));
-            this.alpha = 0xd0 / 255f;
+            //this.add(playerNumber);
+            //playerNumber.setHorizontalAlignment(HorizontalAlignment.CENTER);
+            //playerNumber.setForeground(ColorHelper.getARGB(direction, 0xd0));
+            this.alpha = 0xe0 / 255f;
+            this.setBackground(0x60000000);
         }
 
         @Override
         public void layout() {
-            playerNumber.setBounds(0, 0, width, height);
+            //playerNumber.setBounds(0, 0, width, height);
             super.layout();
         }
 
         @SuppressWarnings("AlibabaLowerCamelCaseVariableNaming")
         @Override
         public void render(GuiGraphics guigraphics, int pMouseX, int pMouseY, float pPartialTick) {
+            renderBackground(guigraphics, pMouseX, pMouseY, pPartialTick);
             if (imageLocation != null) {
                 RenderSystem.setShaderColor(1, 1, 1, alpha);
                 RenderSystem.enableBlend();
@@ -285,7 +298,6 @@ public class CoreModeHUD extends TPanel {
                 }
                 RenderSystem.setShaderColor(1, 1, 1, 1);
             }
-            renderBackground(guigraphics, pMouseX, pMouseY, pPartialTick);
             if (border != null) {
                 renderBorder(guigraphics, pMouseX, pMouseY, pPartialTick);
             }
