@@ -32,7 +32,7 @@ public class BlockMixin {
     private void bounceUp(Entity entity) {
         Vec3 vec3 = entity.getDeltaMovement();
         //var dir = GravityChangerAPIProxy.getGravityDirection(entity);
-        if (Math.abs(vec3.x) >= 0.3 || Math.abs(vec3.y) >= 0.3 || Math.abs(vec3.z) >= 0.3) {
+        if (Math.abs(vec3.x) >= 0.05 || Math.abs(vec3.y) >= 0.05 || Math.abs(vec3.z) >= 0.05) {
             entity.setDeltaMovement(-vec3.x, -vec3.y, -vec3.z);
         }
 

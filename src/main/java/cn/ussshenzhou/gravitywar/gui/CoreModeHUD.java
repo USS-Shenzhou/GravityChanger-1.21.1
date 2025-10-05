@@ -117,7 +117,7 @@ public class CoreModeHUD extends TPanel {
         core0.setHorizontalAlignment(HorizontalAlignment.CENTER);
 
         this.add(status);
-        status.setBackground(0x60000000);
+        status.setBackground(0x40000000);
         status.setHorizontalAlignment(HorizontalAlignment.CENTER);
     }
 
@@ -232,6 +232,7 @@ public class CoreModeHUD extends TPanel {
     public static class ColorfulImage extends TImage {
         private final Vector3f color;
         //private final TLabel playerNumber = new TLabel(Component.literal("0"));
+        private final TImage outline = new TImage(ResourceLocation.fromNamespaceAndPath(GravityWar.MODID, "textures/gui/core_outline.png"));
 
         public ColorfulImage(ResourceLocation imageLocation, Direction direction) {
             super(imageLocation);
@@ -239,13 +240,16 @@ public class CoreModeHUD extends TPanel {
             //this.add(playerNumber);
             //playerNumber.setHorizontalAlignment(HorizontalAlignment.CENTER);
             //playerNumber.setForeground(ColorHelper.getARGB(direction, 0xd0));
-            this.alpha = 0xe0 / 255f;
-            this.setBackground(0x60000000);
+            this.alpha = 1;
+            this.setBackground(0x40000000);
+            this.add(outline);
+            outline.setAlpha(0.4f);
         }
 
         @Override
         public void layout() {
             //playerNumber.setBounds(0, 0, width, height);
+            outline.setBounds(0, 0, width, height);
             super.layout();
         }
 

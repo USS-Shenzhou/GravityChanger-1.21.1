@@ -131,8 +131,11 @@ public class ServerGameManager extends GameManager {
                 .map(ServerGameManager::getPlayerS)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .filter(Objects::nonNull)
-                .forEach(action);
+                .forEach(player -> {
+                    if (player != null) {
+                        action.accept(player);
+                    }
+                });
     }
 
     public static void teleportWithDiffuse(Player player, BlockPos pos) {
@@ -331,7 +334,7 @@ public class ServerGameManager extends GameManager {
                             if (beaconPos != null && beaconTeam == team && getLevel().getBlockState(beaconPos).getBlock() == Blocks.BEACON) {
                                 teleportWithDiffuse(p, beaconPos);
                                 p.setGameMode(GameType.SURVIVAL);
-                                p.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 20 * 5, 5, false, true));
+                                p.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 20 * 10, 4, false, true));
                             } else {
                                 var posList = StreamSupport.stream(getLevel().getEntities().getAll().spliterator(), false)
                                         .filter(entity -> entity instanceof CoreEntity)
@@ -341,7 +344,7 @@ public class ServerGameManager extends GameManager {
                                     var pos = posList.get(ThreadLocalRandom.current().nextInt(posList.size()));
                                     teleportWithDiffuse(p, pos.blockPosition());
                                     p.setGameMode(GameType.SURVIVAL);
-                                    p.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 20 * 5, 5, false, true));
+                                    p.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 20 * 10, 4, false, true));
                                 }
                             }
                         }
@@ -415,6 +418,8 @@ public class ServerGameManager extends GameManager {
             core.setPos(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
             ServerGameManager.getLevel().addFreshEntity(core);
             NetworkHelper.sendToAllPlayers(new SubtitlePacket(DirectionHelper.getTeamName(DirectionHelper.getPyramidRegion(pos)) + " 已激活新核心"));
+            event.setCanceled(true);
+            event.setCancellationResult(ItemInteractionResult.SUCCESS);
         }
     }
 }

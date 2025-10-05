@@ -23,7 +23,7 @@ public class ModEntityRendererRegistry {
         event.put(
                 ModEntities.CORE_ENTITY_TYPE.get(),
                 LivingEntity.createLivingAttributes()
-                        .add(Attributes.MAX_HEALTH, 60)
+                        .add(Attributes.MAX_HEALTH, 300)
                         .add(Attributes.FOLLOW_RANGE, 1)
                         .build()
         );

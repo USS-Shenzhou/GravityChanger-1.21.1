@@ -86,6 +86,7 @@ public abstract class MatchManager {
             p.load(new CompoundTag());
             p.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 200, 1, false, false));
             p.addEffect(new MobEffectInstance(MobEffects.SATURATION, 200, 1, false, false));
+            p.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 20 * 20, 5, false, true));
         });
     }
 
@@ -240,7 +241,7 @@ public abstract class MatchManager {
             var entity = getLevel().getBlockEntity(poi);
             if (entity instanceof BarrelBlockEntity e && e.hasAnyOf(Set.of(Items.BEACON, Items.END_CRYSTAL))) {
                 getServer().getCommands().performPrefixedCommand(getServer().createCommandSourceStack(),
-                        "mp minecraft:ash RANDOM 350 TRUE 20 ~ ~ ~ 0.0 0.0 0.0 0.0 0.0 0.0 0.25 0.25 0.25 FALSE 0 0 0 1.0 1.0 0.0 0.0 0 0 0 0 0.00001 FALSE 0 0 INSTANCED 0.000 0.923 0.946 6 1 1 LINEAR 1.00 4.00 LINEAR @a {\"indexed\":1,\"tenet\":1}");
+                        "mp minecraft:ash RANDOM 350 TRUE 30 ~ ~ ~ 0.0 0.0 0.0 0.0 0.0 0.0 0.25 0.25 0.25 FALSE 0 0 0 1.0 1.0 0.0 0.0 0 0 0 0 0.00001 FALSE 0 0 INSTANCED 0.446 0.088 0.861 6 1 1 LINEAR 1.00 4.00 LINEAR @a {\"indexed\":1,\"tenet\":1}");
             }
         }
     }
