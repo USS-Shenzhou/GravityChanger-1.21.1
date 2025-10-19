@@ -165,14 +165,16 @@ public class ServerGameManager extends GameManager {
             maxPlayerPerTeam = (int) getServer().getPlayerList().getPlayers().stream()
                     .filter(p -> !p.hasPermissions(2))
                     .count() / 6 + 1;
-            while (!neutralPlayers.isEmpty()) {
-                var player = neutralPlayers.iterator().next();
+            var it = neutralPlayers.iterator();
+            while (it.hasNext()) {
+                var player = it.next();
                 TEAM_TO_PLAYER.entrySet().stream()
                         .filter(e -> e.getValue().size() < maxPlayerPerTeam)
                         .findAny()
                         .ifPresent(e -> {
                             e.getValue().add(player.getUUID());
                             PLAYER_TO_TEAM.put(player.getUUID(), e.getKey());
+                            it.remove();
                         });
             }
         }
