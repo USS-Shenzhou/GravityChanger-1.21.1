@@ -326,8 +326,8 @@ public class ServerGameManager extends GameManager {
         if (PLAYER_TO_TEAM.containsKey(player.getUUID()) && phase != MatchPhase.CHOOSE) {
             var team = PLAYER_TO_TEAM.get(player.getUUID());
             GravityChangerAPIProxy.setBaseGravityDirection(player, team);
-            var deathTime = PLAYER_DEATH.compute(player.getUUID(), (uuid, integer) -> integer == null ? 0 : ++integer) * 10;
-            NetworkHelper.sendToPlayer((ServerPlayer) player, new SubtitlePacket("将于 " + deathTime + " 秒后复活"));
+            var deathTime = 10;
+            NetworkHelper.sendToPlayer((ServerPlayer) player, new SubtitlePacket("将于 " + deathTime + " 秒后复活（如果还有核心存活）"));
             ((ServerPlayer) player).setGameMode(GameType.SPECTATOR);
             UtilS.delay(() -> {
                 getPlayerS(player.getUUID()).ifPresent(p -> {

@@ -112,7 +112,7 @@ public class CoreEntity extends Mob {
                 //    }
                 //});
                 if (getLastHurtByMob() instanceof Player player) {
-                    var d = ServerGameManager.PLAYER_TO_TEAM.get(player.getUUID());
+                    var d = DirectionHelper.getPyramidRegion(getPosition(0));
                     if (d != null) {
                         var p = ServerGameManager.TEAM_TO_PLAYER.get(d);
                         if (p != null) {
