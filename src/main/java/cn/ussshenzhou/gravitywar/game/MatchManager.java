@@ -278,7 +278,7 @@ public abstract class MatchManager {
                             var correctG = phase == MatchPhase.CHOOSE ? Direction.DOWN : DirectionHelper.getPyramidRegion(entity.getEyePosition());
                             if (currentG != correctG) {
                                 GravityChangerAPIProxy.setBaseGravityDirection(entity, correctG);
-                                tagTo[1] = "gw_rot_cd_" + 20;
+                                tagTo[1] = "gw_rot_cd_" + 40;
                             }
                         });
                 if (tagTo[0] != null) {

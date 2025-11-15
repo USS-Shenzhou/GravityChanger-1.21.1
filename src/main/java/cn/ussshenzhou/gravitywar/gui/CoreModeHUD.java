@@ -79,7 +79,7 @@ public class CoreModeHUD extends TPanel {
             Direction.WEST);
     private ColorfulImage localTeam = null;
 
-    private final TLabel core0 = new TLabel(Component.literal("当前区域的核心"));
+    private final TLabel core0 = new TLabel(Component.literal("附近的核心"));
     private final TProgressBar core1 = new TProgressBar();
     private final TProgressBar core2 = new TProgressBar();
     private final TProgressBar core3 = new TProgressBar();

@@ -112,12 +112,17 @@ public class CoreEntity extends Mob {
                 //    }
                 //});
                 if (getLastHurtByMob() instanceof Player player) {
-                    ServerGameManager.TEAM_TO_PLAYER.get(ServerGameManager.PLAYER_TO_TEAM.get(player.getUUID()))
-                            .stream()
-                            .map(ServerGameManager::getPlayerS)
-                            .filter(Optional::isPresent)
-                            .map(Optional::get)
-                            .forEach(p -> p.addTag("gw_auto_rot"));
+                    var d = ServerGameManager.PLAYER_TO_TEAM.get(player.getUUID());
+                    if (d != null) {
+                        var p = ServerGameManager.TEAM_TO_PLAYER.get(d);
+                        if (p != null) {
+                            p.stream()
+                                    .map(ServerGameManager::getPlayerS)
+                                    .filter(Optional::isPresent)
+                                    .map(Optional::get)
+                                    .forEach(p0 -> p0.addTag("gw_auto_rot"));
+                        }
+                    }
                 }
                 ((ServerLevel) level()).playSeededSound(null, this, BuiltInRegistries.SOUND_EVENT.wrapAsHolder(SoundEvents.BEACON_DEACTIVATE), SoundSource.BLOCKS, 0.8f, 1.3f, 42L);
             }
