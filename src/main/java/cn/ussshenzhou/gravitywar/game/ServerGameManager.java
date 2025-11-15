@@ -363,7 +363,8 @@ public class ServerGameManager extends GameManager {
 
     @SubscribeEvent
     public static void itemEntityChangeGravity(EntityJoinLevelEvent event) {
-        if (event.getEntity() instanceof ItemEntity || event.getEntity() instanceof FallingBlockEntity) {
+        if (event.getEntity() instanceof ItemEntity ||
+                event.getEntity() instanceof FallingBlockEntity) {
             GravityChangerAPIProxy.setBaseGravityDirection(event.getEntity(), DirectionHelper.getPyramidRegion(event.getEntity().position()));
         }
     }

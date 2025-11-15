@@ -1,5 +1,3 @@
 {
-  "itemGroup.gravitywar": "Example Mod Tab",
-  "block.gravitywar.example_block": "Example Block",
-  "item.gravitywar.example_item": "Example Item"
+  "entity.gravitywar.core": "重力核心"
 }

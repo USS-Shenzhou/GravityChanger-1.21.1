@@ -129,7 +129,7 @@ public abstract class MatchManager {
         if (phase != MatchPhase.CHOOSE) {
             forEachS(p -> {
                 if (p.position().distanceToSqr(0, 0, 0) + p.getEyePosition().distanceToSqr(0, 0, 0) <= 16 + 16) {
-                   p.setRemainingFireTicks(60);
+                    p.setRemainingFireTicks(60);
                 }
             });
         }
@@ -231,7 +231,12 @@ public abstract class MatchManager {
             }
             var random = ThreadLocalRandom.current();
             var vec = new Vec3(2 * random.nextDouble() - 1, 2 * random.nextDouble() - 1, 2 * random.nextDouble() - 1);
-            LargeFireball largefireball = new LargeFireball(getLevel(), FAKE_OWNER, vec.normalize(), 2);
+            LargeFireball largefireball = new LargeFireball(getLevel(), FAKE_OWNER, vec.normalize(), 2){
+                @Override
+                public boolean displayFireAnimation() {
+                    return false;
+                }
+            };
             largefireball.setPos(0, 0, 0);
             getLevel().playSeededSound(null, 0, 0, 0, SoundEvents.GHAST_SHOOT, SoundSource.BLOCKS, 1, 1, 42L);
             getLevel().addFreshEntity(largefireball);
@@ -240,7 +245,7 @@ public abstract class MatchManager {
         if (poi != null && (event == RandomEvent.RESPAWN_BEACON || event == RandomEvent.CORE_REVIVE)) {
             var entity = getLevel().getBlockEntity(poi);
             if (entity instanceof BarrelBlockEntity e && e.hasAnyOf(Set.of(Items.BEACON, Items.END_CRYSTAL))) {
-                getServer().getCommands().performPrefixedCommand(getServer().createCommandSourceStack(),
+                getServer().getCommands().performPrefixedCommand(getServer().createCommandSourceStack().withPosition(new Vec3(poi.getX(), poi.getY(), poi.getZ())),
                         "mp minecraft:ash RANDOM 350 TRUE 30 ~ ~ ~ 0.0 0.0 0.0 0.0 0.0 0.0 0.25 0.25 0.25 FALSE 0 0 0 1.0 1.0 0.0 0.0 0 0 0 0 0.00001 FALSE 0 0 INSTANCED 0.446 0.088 0.861 6 1 1 LINEAR 1.00 4.00 LINEAR @a {\"indexed\":1,\"tenet\":1}");
             }
         }
